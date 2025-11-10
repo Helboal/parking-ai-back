@@ -49,6 +49,28 @@ class AuthController extends Controller
         // Generar token
         $token = $user->createToken('api-token')->plainTextToken;
 
+        // Obtener rol con permisos
+        $role = $user->roles()->first();
+        $roleData = null;
+        if ($role) {
+            $roleData = [
+                'id' => $role->id,
+                'name' => $role->name,
+                'guard_name' => $role->guard_name,
+                'created_at' => $role->created_at,
+                'updated_at' => $role->updated_at,
+                'permissions' => $role->permissions->map(function ($permission) {
+                    return [
+                        'id' => $permission->id,
+                        'name' => $permission->name,
+                        'guard_name' => $permission->guard_name,
+                        'created_at' => $permission->created_at,
+                        'updated_at' => $permission->updated_at,
+                    ];
+                })->toArray(),
+            ];
+        }
+
         // Respuesta exitosa
         return $this->successResponse(
             [
@@ -59,6 +81,7 @@ class AuthController extends Controller
                     'email_verified_at' => $user->email_verified_at,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
+                    'role' => $roleData,
                 ],
                 'token' => $token,
             ],
@@ -97,6 +120,28 @@ class AuthController extends Controller
         // Obtener usuario autenticado
         $user = $request->user();
 
+        // Obtener rol con permisos
+        $role = $user->roles()->first();
+        $roleData = null;
+        if ($role) {
+            $roleData = [
+                'id' => $role->id,
+                'name' => $role->name,
+                'guard_name' => $role->guard_name,
+                'created_at' => $role->created_at,
+                'updated_at' => $role->updated_at,
+                'permissions' => $role->permissions->map(function ($permission) {
+                    return [
+                        'id' => $permission->id,
+                        'name' => $permission->name,
+                        'guard_name' => $permission->guard_name,
+                        'created_at' => $permission->created_at,
+                        'updated_at' => $permission->updated_at,
+                    ];
+                })->toArray(),
+            ];
+        }
+
         // Respuesta exitosa
         return $this->successResponse(
             [
@@ -106,6 +151,7 @@ class AuthController extends Controller
                 'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
+                'role' => $roleData,
             ],
             'Usuario autenticado',
             200
