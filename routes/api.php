@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DocumentTypeController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,5 +16,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin routes
     Route::prefix('admin')->group(function () {
         Route::apiResource('document-types', DocumentTypeController::class);
+        Route::apiResource('users', UserController::class);
     });
 });
