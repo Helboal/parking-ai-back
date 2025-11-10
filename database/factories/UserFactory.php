@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\DocumentType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -23,12 +24,23 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        // Asegurar que exista al menos un tipo de documento
+        $documentType = DocumentType::firstOrCreate(
+            ['code' => 'CC'],
+            ['name' => 'Cédula de Ciudadanía']
+        );
+
         return [
-            'name' => fake()->name(),
+            'name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'document_number' => fake()->unique()->numerify('##########'),
+            'phone' => fake()->numerify('300#######'),
+            'is_active' => true,
+            'document_type_id' => $documentType->id,
         ];
     }
 
