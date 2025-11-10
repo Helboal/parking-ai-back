@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             DocumentTypeSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
+            BranchSeeder::class,
         ]);
     }
 }
