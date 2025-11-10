@@ -4,22 +4,32 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Crear rol Super Administrador para los tests
+        Role::create(['name' => 'Super Administrador', 'guard_name' => 'sanctum']);
+    }
+
     /**
      * Test login with valid credentials
      */
     public function test_login_with_valid_credentials(): void
     {
-        // Crear usuario
+        // Crear usuario y asignar rol
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => bcrypt('password123'),
         ]);
+        $user->assignRole('Super Administrador');
 
         // Hacer login
         $response = $this->postJson('/api/login', [
@@ -40,6 +50,14 @@ class AuthTest extends TestCase
                         'email_verified_at',
                         'created_at',
                         'updated_at',
+                        'role' => [
+                            'id',
+                            'name',
+                            'guard_name',
+                            'created_at',
+                            'updated_at',
+                            'permissions',
+                        ],
                     ],
                     'token',
                 ],
@@ -49,6 +67,14 @@ class AuthTest extends TestCase
                 'success' => true,
                 'message' => 'Login exitoso',
                 'code' => 200,
+                'data' => [
+                    'user' => [
+                        'role' => [
+                            'name' => 'Super Administrador',
+                            'guard_name' => 'sanctum',
+                        ],
+                    ],
+                ],
             ]);
 
         // Verificar que el token existe
@@ -190,11 +216,12 @@ class AuthTest extends TestCase
      */
     public function test_get_authenticated_user_with_valid_token(): void
     {
-        // Crear usuario y generar token
+        // Crear usuario, asignar rol y generar token
         $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+        $user->assignRole('Super Administrador');
         $token = $user->createToken('api-token')->plainTextToken;
 
         // Obtener usuario autenticado
@@ -213,6 +240,14 @@ class AuthTest extends TestCase
                     'email_verified_at',
                     'created_at',
                     'updated_at',
+                    'role' => [
+                        'id',
+                        'name',
+                        'guard_name',
+                        'created_at',
+                        'updated_at',
+                        'permissions',
+                    ],
                 ],
                 'code',
             ])
@@ -224,6 +259,10 @@ class AuthTest extends TestCase
                     'id' => $user->id,
                     'name' => 'Test User',
                     'email' => 'test@example.com',
+                    'role' => [
+                        'name' => 'Super Administrador',
+                        'guard_name' => 'sanctum',
+                    ],
                 ],
             ]);
     }
