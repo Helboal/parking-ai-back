@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\DocumentTypeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
@@ -17,5 +18,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->group(function () {
         Route::apiResource('document-types', DocumentTypeController::class);
         Route::apiResource('users', UserController::class);
+        Route::apiResource('branches', BranchController::class);
     });
 });
