@@ -34,8 +34,8 @@ class AuthController extends Controller
             );
         }
 
-        // Buscar usuario
-        $user = User::where('email', $request->email)->first();
+        // Buscar usuario con relación document_type
+        $user = User::with('documentType')->where('email', $request->email)->first();
 
         // Verificar credenciales
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -43,6 +43,15 @@ class AuthController extends Controller
                 'Credenciales incorrectas',
                 ['email' => ['Las credenciales proporcionadas son incorrectas.']],
                 401
+            );
+        }
+
+        // Verificar si el usuario está activo
+        if (!$user->is_active) {
+            return $this->errorResponse(
+                'Usuario inactivo',
+                ['user' => ['El usuario está inactivo y no puede iniciar sesión.']],
+                403
             );
         }
 
@@ -77,10 +86,15 @@ class AuthController extends Controller
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
+                    'last_name' => $user->last_name,
                     'email' => $user->email,
+                    'document_number' => $user->document_number,
+                    'phone' => $user->phone,
+                    'is_active' => $user->is_active,
                     'email_verified_at' => $user->email_verified_at,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
+                    'document_type' => $user->documentType,
                     'role' => $roleData,
                 ],
                 'token' => $token,
@@ -117,8 +131,8 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
-        // Obtener usuario autenticado
-        $user = $request->user();
+        // Obtener usuario autenticado con relación document_type
+        $user = $request->user()->load('documentType');
 
         // Obtener rol con permisos
         $role = $user->roles()->first();
@@ -147,10 +161,15 @@ class AuthController extends Controller
             [
                 'id' => $user->id,
                 'name' => $user->name,
+                'last_name' => $user->last_name,
                 'email' => $user->email,
+                'document_number' => $user->document_number,
+                'phone' => $user->phone,
+                'is_active' => $user->is_active,
                 'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
+                'document_type' => $user->documentType,
                 'role' => $roleData,
             ],
             'Usuario autenticado',
