@@ -46,10 +46,21 @@ class AuthTest extends TestCase
                     'user' => [
                         'id',
                         'name',
+                        'last_name',
                         'email',
+                        'document_number',
+                        'phone',
+                        'is_active',
                         'email_verified_at',
                         'created_at',
                         'updated_at',
+                        'document_type' => [
+                            'id',
+                            'name',
+                            'code',
+                            'created_at',
+                            'updated_at',
+                        ],
                         'role' => [
                             'id',
                             'name',
@@ -133,6 +144,34 @@ class AuthTest extends TestCase
                 'message' => 'Credenciales incorrectas',
                 'data' => null,
                 'code' => 401,
+            ]);
+    }
+
+    /**
+     * Test login with inactive user
+     */
+    public function test_login_with_inactive_user(): void
+    {
+        // Crear usuario inactivo
+        $user = User::factory()->create([
+            'email' => 'inactive@example.com',
+            'password' => bcrypt('password123'),
+            'is_active' => false,
+        ]);
+
+        // Intentar login con usuario inactivo
+        $response = $this->postJson('/api/login', [
+            'email' => 'inactive@example.com',
+            'password' => 'password123',
+        ]);
+
+        // Verificar respuesta
+        $response->assertStatus(403)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Usuario inactivo',
+                'data' => null,
+                'code' => 403,
             ]);
     }
 
@@ -236,10 +275,21 @@ class AuthTest extends TestCase
                 'data' => [
                     'id',
                     'name',
+                    'last_name',
                     'email',
+                    'document_number',
+                    'phone',
+                    'is_active',
                     'email_verified_at',
                     'created_at',
                     'updated_at',
+                    'document_type' => [
+                        'id',
+                        'name',
+                        'code',
+                        'created_at',
+                        'updated_at',
+                    ],
                     'role' => [
                         'id',
                         'name',
@@ -257,7 +307,6 @@ class AuthTest extends TestCase
                 'code' => 200,
                 'data' => [
                     'id' => $user->id,
-                    'name' => 'Test User',
                     'email' => 'test@example.com',
                     'role' => [
                         'name' => 'Super Administrador',
