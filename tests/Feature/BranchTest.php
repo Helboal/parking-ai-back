@@ -13,6 +13,7 @@ class BranchTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $token;
 
     protected function setUp(): void
@@ -53,7 +54,7 @@ class BranchTest extends TestCase
             'user_id' => $this->user->id,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson('/api/admin/branches');
 
         $response->assertStatus(200)
@@ -100,7 +101,7 @@ class BranchTest extends TestCase
             'user_id' => $this->user->id,
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/branches', $data);
 
         $response->assertStatus(201)
@@ -146,7 +147,7 @@ class BranchTest extends TestCase
      */
     public function test_store_fails_with_validation_errors(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/branches', []);
 
         $response->assertStatus(422)
@@ -177,7 +178,7 @@ class BranchTest extends TestCase
             'available_spaces' => 150,
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/branches', $data);
 
         $response->assertStatus(422)
@@ -198,7 +199,7 @@ class BranchTest extends TestCase
             'available_spaces' => 100,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/branches', [
                 'name' => 'Sede Duplicada',
                 'address' => 'Calle 2',
@@ -227,8 +228,8 @@ class BranchTest extends TestCase
             'user_id' => $this->user->id,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->getJson('/api/admin/branches/' . $branch->id);
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->getJson('/api/admin/branches/'.$branch->id);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -250,7 +251,7 @@ class BranchTest extends TestCase
      */
     public function test_show_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson('/api/admin/branches/999');
 
         $response->assertStatus(404)
@@ -273,8 +274,8 @@ class BranchTest extends TestCase
             'available_spaces' => 100,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->putJson('/api/admin/branches/' . $branch->id, [
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->putJson('/api/admin/branches/'.$branch->id, [
                 'name' => 'Sede Actualizada',
                 'address' => 'Calle Actualizada',
                 'phone' => '3002222222',
@@ -315,8 +316,8 @@ class BranchTest extends TestCase
             'available_spaces' => 90,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->putJson('/api/admin/branches/' . $branch->id, [
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->putJson('/api/admin/branches/'.$branch->id, [
                 'name' => 'Sede Test',
                 'address' => 'Calle Test',
                 'total_spaces' => 100,
@@ -334,7 +335,7 @@ class BranchTest extends TestCase
      */
     public function test_update_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->putJson('/api/admin/branches/999', [
                 'name' => 'Test',
                 'address' => 'Test',
@@ -362,8 +363,8 @@ class BranchTest extends TestCase
             'available_spaces' => 50,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->deleteJson('/api/admin/branches/' . $branch->id);
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->deleteJson('/api/admin/branches/'.$branch->id);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -383,7 +384,7 @@ class BranchTest extends TestCase
      */
     public function test_destroy_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->deleteJson('/api/admin/branches/999');
 
         $response->assertStatus(404)

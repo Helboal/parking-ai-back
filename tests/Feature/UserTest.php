@@ -13,8 +13,11 @@ class UserTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $token;
+
     protected $role;
+
     protected $documentType;
 
     protected function setUp(): void
@@ -43,7 +46,7 @@ class UserTest extends TestCase
         $user2 = User::factory()->create();
         $user2->assignRole('Super Administrador');
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson('/api/admin/users');
 
         $response->assertStatus(200)
@@ -104,7 +107,7 @@ class UserTest extends TestCase
             'role_id' => $this->role->id,
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/users', $data);
 
         $response->assertStatus(201)
@@ -152,7 +155,7 @@ class UserTest extends TestCase
      */
     public function test_store_fails_with_validation_errors(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/users', []);
 
         $response->assertStatus(422)
@@ -184,7 +187,7 @@ class UserTest extends TestCase
             'document_number' => '1234567890',
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/users', [
                 'name' => 'Juan',
                 'last_name' => 'Pérez',
@@ -211,7 +214,7 @@ class UserTest extends TestCase
             'email' => 'existing@example.com',
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/users', [
                 'name' => 'Juan',
                 'last_name' => 'Pérez',
@@ -241,8 +244,8 @@ class UserTest extends TestCase
         ]);
         $testUser->assignRole('Super Administrador');
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->getJson('/api/admin/users/' . $testUser->id);
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->getJson('/api/admin/users/'.$testUser->id);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -261,7 +264,7 @@ class UserTest extends TestCase
      */
     public function test_show_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson('/api/admin/users/999');
 
         $response->assertStatus(404)
@@ -284,8 +287,8 @@ class UserTest extends TestCase
         ]);
         $testUser->assignRole('Super Administrador');
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->putJson('/api/admin/users/' . $testUser->id, [
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->putJson('/api/admin/users/'.$testUser->id, [
                 'name' => 'Updated',
                 'last_name' => 'Name',
                 'email' => 'updated@example.com',
@@ -319,7 +322,7 @@ class UserTest extends TestCase
      */
     public function test_update_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->putJson('/api/admin/users/999', [
                 'name' => 'Test',
                 'last_name' => 'User',
@@ -344,8 +347,8 @@ class UserTest extends TestCase
     {
         $testUser = User::factory()->create();
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->deleteJson('/api/admin/users/' . $testUser->id);
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->deleteJson('/api/admin/users/'.$testUser->id);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -365,7 +368,7 @@ class UserTest extends TestCase
      */
     public function test_destroy_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->deleteJson('/api/admin/users/999');
 
         $response->assertStatus(404)

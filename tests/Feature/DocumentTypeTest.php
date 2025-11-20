@@ -13,6 +13,7 @@ class DocumentTypeTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $token;
 
     protected function setUp(): void
@@ -36,7 +37,7 @@ class DocumentTypeTest extends TestCase
         DocumentType::firstOrCreate(['code' => 'PP'], ['name' => 'Pasaporte']);
         DocumentType::firstOrCreate(['code' => 'NIT'], ['name' => 'NIT']);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson('/api/admin/document-types');
 
         $response->assertStatus(200)
@@ -44,7 +45,7 @@ class DocumentTypeTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    '*' => ['id', 'name', 'code', 'created_at', 'updated_at']
+                    '*' => ['id', 'name', 'code', 'created_at', 'updated_at'],
                 ],
                 'code',
             ])
@@ -67,7 +68,7 @@ class DocumentTypeTest extends TestCase
             'code' => 'RC',
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/document-types', $data);
 
         $response->assertStatus(201)
@@ -98,7 +99,7 @@ class DocumentTypeTest extends TestCase
      */
     public function test_store_fails_with_validation_errors(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/document-types', []);
 
         $response->assertStatus(422)
@@ -119,7 +120,7 @@ class DocumentTypeTest extends TestCase
     {
         DocumentType::firstOrCreate(['code' => 'CC'], ['name' => 'Test']);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/document-types', [
                 'name' => 'Cédula de Ciudadanía',
                 'code' => 'CC',
@@ -141,8 +142,8 @@ class DocumentTypeTest extends TestCase
             ['name' => 'Cédula de Extranjería']
         );
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->getJson('/api/admin/document-types/' . $documentType->id);
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->getJson('/api/admin/document-types/'.$documentType->id);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -162,7 +163,7 @@ class DocumentTypeTest extends TestCase
      */
     public function test_show_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson('/api/admin/document-types/999');
 
         $response->assertStatus(404)
@@ -183,8 +184,8 @@ class DocumentTypeTest extends TestCase
             ['name' => 'Tarjeta de Identidad']
         );
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->putJson('/api/admin/document-types/' . $documentType->id, [
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->putJson('/api/admin/document-types/'.$documentType->id, [
                 'name' => 'Tarjeta de Identidad Actualizada',
                 'code' => 'TI',
             ]);
@@ -211,7 +212,7 @@ class DocumentTypeTest extends TestCase
      */
     public function test_update_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->putJson('/api/admin/document-types/999', [
                 'name' => 'Test',
                 'code' => 'TEST',
@@ -235,8 +236,8 @@ class DocumentTypeTest extends TestCase
             'code' => 'PT',
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
-            ->deleteJson('/api/admin/document-types/' . $documentType->id);
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->deleteJson('/api/admin/document-types/'.$documentType->id);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -255,7 +256,7 @@ class DocumentTypeTest extends TestCase
      */
     public function test_destroy_fails_with_not_found(): void
     {
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->deleteJson('/api/admin/document-types/999');
 
         $response->assertStatus(404)

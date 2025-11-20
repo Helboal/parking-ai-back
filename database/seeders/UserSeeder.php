@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
@@ -84,7 +83,7 @@ class UserSeeder extends Seeder
 
             // Asignar rol
             $role = Role::where('name', $userData['role'])->first();
-            if ($role && !$user->hasRole($role)) {
+            if ($role && ! $user->hasRole($role)) {
                 $user->assignRole($role);
             }
         }

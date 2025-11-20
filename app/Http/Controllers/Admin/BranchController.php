@@ -84,7 +84,6 @@ class BranchController extends Controller
     /**
      * Store a newly created branch.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
@@ -190,14 +189,14 @@ class BranchController extends Controller
     /**
      * Display the specified branch.
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
         $branch = Branch::with(['user.documentType', 'user.roles'])->find($id);
 
-        if (!$branch) {
+        if (! $branch) {
             return $this->errorResponse(
                 'Sede no encontrada',
                 ['branch' => ['La sede no existe.']],
@@ -263,15 +262,14 @@ class BranchController extends Controller
     /**
      * Update the specified branch.
      *
-     * @param Request $request
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
         $branch = Branch::find($id);
 
-        if (!$branch) {
+        if (! $branch) {
             return $this->errorResponse(
                 'Sede no encontrada',
                 ['branch' => ['La sede no existe.']],
@@ -385,14 +383,14 @@ class BranchController extends Controller
     /**
      * Remove the specified branch (soft delete).
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
         $branch = Branch::find($id);
 
-        if (!$branch) {
+        if (! $branch) {
             return $this->errorResponse(
                 'Sede no encontrada',
                 ['branch' => ['La sede no existe.']],

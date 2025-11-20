@@ -7,9 +7,7 @@ trait ApiResponse
     /**
      * Success response
      *
-     * @param mixed $data
-     * @param string $message
-     * @param int $code
+     * @param  mixed  $data
      * @return \Illuminate\Http\JsonResponse
      */
     protected function successResponse($data, string $message = 'Success', int $code = 200)
@@ -25,9 +23,7 @@ trait ApiResponse
     /**
      * Error response
      *
-     * @param string $message
-     * @param mixed $errors
-     * @param int $code
+     * @param  mixed  $errors
      * @return \Illuminate\Http\JsonResponse
      */
     protected function errorResponse(string $message = 'Error', $errors = [], int $code = 400)

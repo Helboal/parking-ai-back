@@ -15,7 +15,6 @@ class AuthController extends Controller
     /**
      * Login user and generate token
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function login(Request $request)
@@ -38,7 +37,7 @@ class AuthController extends Controller
         $user = User::with('documentType')->where('email', $request->email)->first();
 
         // Verificar credenciales
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return $this->errorResponse(
                 'Credenciales incorrectas',
                 ['email' => ['Las credenciales proporcionadas son incorrectas.']],
@@ -47,7 +46,7 @@ class AuthController extends Controller
         }
 
         // Verificar si el usuario está activo
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return $this->errorResponse(
                 'Usuario inactivo',
                 ['user' => ['El usuario está inactivo y no puede iniciar sesión.']],
@@ -107,7 +106,6 @@ class AuthController extends Controller
     /**
      * Logout user and revoke token
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function logout(Request $request)
@@ -126,7 +124,6 @@ class AuthController extends Controller
     /**
      * Get authenticated user
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function user(Request $request)

@@ -65,7 +65,7 @@ class DocumentTypeController extends Controller
     {
         $documentType = DocumentType::find($id);
 
-        if (!$documentType) {
+        if (! $documentType) {
             return $this->errorResponse(
                 'Tipo de documento no encontrado',
                 ['id' => ['El tipo de documento especificado no existe.']],
@@ -87,7 +87,7 @@ class DocumentTypeController extends Controller
     {
         $documentType = DocumentType::find($id);
 
-        if (!$documentType) {
+        if (! $documentType) {
             return $this->errorResponse(
                 'Tipo de documento no encontrado',
                 ['id' => ['El tipo de documento especificado no existe.']],
@@ -98,7 +98,7 @@ class DocumentTypeController extends Controller
         // Validación
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:50',
-            'code' => 'required|string|max:10|unique:document_types,code,' . $id,
+            'code' => 'required|string|max:10|unique:document_types,code,'.$id,
         ]);
 
         if ($validator->fails()) {
@@ -129,7 +129,7 @@ class DocumentTypeController extends Controller
     {
         $documentType = DocumentType::find($id);
 
-        if (!$documentType) {
+        if (! $documentType) {
             return $this->errorResponse(
                 'Tipo de documento no encontrado',
                 ['id' => ['El tipo de documento especificado no existe.']],

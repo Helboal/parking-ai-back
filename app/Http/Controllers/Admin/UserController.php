@@ -73,7 +73,6 @@ class UserController extends Controller
     /**
      * Store a newly created user.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
@@ -181,14 +180,14 @@ class UserController extends Controller
     /**
      * Display the specified user.
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
         $user = User::with(['documentType', 'roles'])->find($id);
 
-        if (!$user) {
+        if (! $user) {
             return $this->errorResponse(
                 'Usuario no encontrado',
                 ['user' => ['El usuario no existe.']],
@@ -241,15 +240,14 @@ class UserController extends Controller
     /**
      * Update the specified user.
      *
-     * @param Request $request
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
         $user = User::find($id);
 
-        if (!$user) {
+        if (! $user) {
             return $this->errorResponse(
                 'Usuario no encontrado',
                 ['user' => ['El usuario no existe.']],
@@ -371,14 +369,14 @@ class UserController extends Controller
     /**
      * Remove the specified user (soft delete).
      *
-     * @param int $id
+     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
         $user = User::find($id);
 
-        if (!$user) {
+        if (! $user) {
             return $this->errorResponse(
                 'Usuario no encontrado',
                 ['user' => ['El usuario no existe.']],
