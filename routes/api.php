@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BranchFlatRateController;
 use App\Http\Controllers\Admin\BranchParkingCapacityController;
 use App\Http\Controllers\Admin\BranchRateController;
 use App\Http\Controllers\Admin\BranchTaxController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DocumentTypeController;
 use App\Http\Controllers\Admin\EntryTypeController;
 use App\Http\Controllers\Admin\PaymentMethodController;
@@ -30,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('document-types', DocumentTypeController::class);
         Route::apiResource('users', UserController::class);
         Route::apiResource('branches', BranchController::class);
+        Route::apiResource('customers', CustomerController::class);
         Route::apiResource('vehicle-types', VehicleTypeController::class);
         Route::apiResource('entry-types', EntryTypeController::class);
         Route::apiResource('subscription-types', SubscriptionTypeController::class);
