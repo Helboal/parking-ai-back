@@ -18,12 +18,13 @@ class BranchFactory extends Factory
     {
         return [
             'name' => fake()->unique()->company(),
+            'code' => fake()->unique()->lexify('??????'),
             'address' => fake()->address(),
             'phone' => fake()->phoneNumber(),
-            'total_spaces' => fake()->numberBetween(50, 200),
-            'available_spaces' => fake()->numberBetween(10, 50),
+            'email' => fake()->companyEmail(),
+            'opening_time' => '06:00',
+            'closing_time' => '22:00',
             'is_active' => true,
-            'user_id' => null,
         ];
     }
 }

@@ -16,7 +16,7 @@ class BranchController extends Controller
     /**
      * Listar sucursales
      *
-     * Obtiene todas las sucursales del sistema con información del usuario responsable
+     * Obtiene todas las sucursales del sistema
      *
      * @OA\Get(
      *     path="/api/admin/branches",
@@ -32,62 +32,10 @@ class BranchController extends Controller
      */
     public function index()
     {
-        $branches = Branch::with(['user.documentType', 'user.roles'])->get();
-
-        // Formatear respuesta
-        $branchesData = $branches->map(function ($branch) {
-            $userData = null;
-            if ($branch->user) {
-                $role = $branch->user->roles()->first();
-                $roleData = null;
-                if ($role) {
-                    $roleData = [
-                        'id' => $role->id,
-                        'name' => $role->name,
-                        'guard_name' => $role->guard_name,
-                        'created_at' => $role->created_at,
-                        'updated_at' => $role->updated_at,
-                        'permissions' => $role->permissions->map(function ($permission) {
-                            return [
-                                'id' => $permission->id,
-                                'name' => $permission->name,
-                                'guard_name' => $permission->guard_name,
-                                'created_at' => $permission->created_at,
-                                'updated_at' => $permission->updated_at,
-                            ];
-                        })->toArray(),
-                    ];
-                }
-
-                $userData = [
-                    'id' => $branch->user->id,
-                    'name' => $branch->user->name,
-                    'last_name' => $branch->user->last_name,
-                    'email' => $branch->user->email,
-                    'document_number' => $branch->user->document_number,
-                    'phone' => $branch->user->phone,
-                    'is_active' => $branch->user->is_active,
-                    'document_type' => $branch->user->documentType,
-                    'role' => $roleData,
-                ];
-            }
-
-            return [
-                'id' => $branch->id,
-                'name' => $branch->name,
-                'address' => $branch->address,
-                'phone' => $branch->phone,
-                'total_spaces' => $branch->total_spaces,
-                'available_spaces' => $branch->available_spaces,
-                'is_active' => $branch->is_active,
-                'created_at' => $branch->created_at,
-                'updated_at' => $branch->updated_at,
-                'user' => $userData,
-            ];
-        });
+        $branches = Branch::all();
 
         return $this->successResponse(
-            $branchesData,
+            $branches,
             'Listado de sedes',
             200
         );
@@ -106,15 +54,16 @@ class BranchController extends Controller
      *         required=true,
      *
      *         @OA\JsonContent(
-     *             required={"name", "address", "total_spaces", "available_spaces"},
+     *             required={"name", "code", "address"},
      *
      *             @OA\Property(property="name", type="string", maxLength=100, example="Sede Norte"),
+     *             @OA\Property(property="code", type="string", maxLength=20, example="NORTE"),
      *             @OA\Property(property="address", type="string", example="Calle 123 #45-67"),
      *             @OA\Property(property="phone", type="string", maxLength=20, example="3001234567"),
-     *             @OA\Property(property="total_spaces", type="integer", minimum=1, example=100),
-     *             @OA\Property(property="available_spaces", type="integer", minimum=0, example=100),
-     *             @OA\Property(property="is_active", type="boolean", example=true),
-     *             @OA\Property(property="user_id", type="integer", example=1)
+     *             @OA\Property(property="email", type="string", maxLength=100, example="norte@parqueadero.com"),
+     *             @OA\Property(property="opening_time", type="string", format="time", example="06:00"),
+     *             @OA\Property(property="closing_time", type="string", format="time", example="22:00"),
+     *             @OA\Property(property="is_active", type="boolean", example=true)
      *         )
      *     ),
      *
@@ -130,23 +79,14 @@ class BranchController extends Controller
         // Validación
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100|unique:branches,name',
+            'code' => 'required|string|max:20|unique:branches,code',
             'address' => 'required|string',
             'phone' => 'nullable|string|max:20',
-            'total_spaces' => 'required|integer|min:1',
-            'available_spaces' => 'required|integer|min:0',
+            'email' => 'nullable|email|max:100',
+            'opening_time' => 'nullable|date_format:H:i',
+            'closing_time' => 'nullable|date_format:H:i',
             'is_active' => 'boolean',
-            'user_id' => 'nullable|exists:users,id',
         ]);
-
-        // Validación adicional: available_spaces <= total_spaces
-        $validator->after(function ($validator) use ($request) {
-            if ($request->available_spaces > $request->total_spaces) {
-                $validator->errors()->add(
-                    'available_spaces',
-                    'Los espacios disponibles no pueden ser mayores que el total de espacios.'
-                );
-            }
-        });
 
         if ($validator->fails()) {
             return $this->errorResponse(
@@ -159,67 +99,17 @@ class BranchController extends Controller
         // Crear sede
         $branch = Branch::create([
             'name' => $request->name,
+            'code' => $request->code,
             'address' => $request->address,
             'phone' => $request->phone,
-            'total_spaces' => $request->total_spaces,
-            'available_spaces' => $request->available_spaces,
+            'email' => $request->email,
+            'opening_time' => $request->opening_time,
+            'closing_time' => $request->closing_time,
             'is_active' => $request->is_active ?? true,
-            'user_id' => $request->user_id,
         ]);
 
-        // Cargar relaciones
-        $branch->load(['user.documentType', 'user.roles']);
-
-        // Formatear user con role
-        $userData = null;
-        if ($branch->user) {
-            $role = $branch->user->roles()->first();
-            $roleData = null;
-            if ($role) {
-                $roleData = [
-                    'id' => $role->id,
-                    'name' => $role->name,
-                    'guard_name' => $role->guard_name,
-                    'created_at' => $role->created_at,
-                    'updated_at' => $role->updated_at,
-                    'permissions' => $role->permissions->map(function ($permission) {
-                        return [
-                            'id' => $permission->id,
-                            'name' => $permission->name,
-                            'guard_name' => $permission->guard_name,
-                            'created_at' => $permission->created_at,
-                            'updated_at' => $permission->updated_at,
-                        ];
-                    })->toArray(),
-                ];
-            }
-
-            $userData = [
-                'id' => $branch->user->id,
-                'name' => $branch->user->name,
-                'last_name' => $branch->user->last_name,
-                'email' => $branch->user->email,
-                'document_number' => $branch->user->document_number,
-                'phone' => $branch->user->phone,
-                'is_active' => $branch->user->is_active,
-                'document_type' => $branch->user->documentType,
-                'role' => $roleData,
-            ];
-        }
-
         return $this->successResponse(
-            [
-                'id' => $branch->id,
-                'name' => $branch->name,
-                'address' => $branch->address,
-                'phone' => $branch->phone,
-                'total_spaces' => $branch->total_spaces,
-                'available_spaces' => $branch->available_spaces,
-                'is_active' => $branch->is_active,
-                'created_at' => $branch->created_at,
-                'updated_at' => $branch->updated_at,
-                'user' => $userData,
-            ],
+            $branch,
             'Sede creada exitosamente',
             201
         );
@@ -246,7 +136,7 @@ class BranchController extends Controller
      */
     public function show($id)
     {
-        $branch = Branch::with(['user.documentType', 'user.roles'])->find($id);
+        $branch = Branch::find($id);
 
         if (! $branch) {
             return $this->errorResponse(
@@ -256,56 +146,8 @@ class BranchController extends Controller
             );
         }
 
-        // Formatear user con role
-        $userData = null;
-        if ($branch->user) {
-            $role = $branch->user->roles()->first();
-            $roleData = null;
-            if ($role) {
-                $roleData = [
-                    'id' => $role->id,
-                    'name' => $role->name,
-                    'guard_name' => $role->guard_name,
-                    'created_at' => $role->created_at,
-                    'updated_at' => $role->updated_at,
-                    'permissions' => $role->permissions->map(function ($permission) {
-                        return [
-                            'id' => $permission->id,
-                            'name' => $permission->name,
-                            'guard_name' => $permission->guard_name,
-                            'created_at' => $permission->created_at,
-                            'updated_at' => $permission->updated_at,
-                        ];
-                    })->toArray(),
-                ];
-            }
-
-            $userData = [
-                'id' => $branch->user->id,
-                'name' => $branch->user->name,
-                'last_name' => $branch->user->last_name,
-                'email' => $branch->user->email,
-                'document_number' => $branch->user->document_number,
-                'phone' => $branch->user->phone,
-                'is_active' => $branch->user->is_active,
-                'document_type' => $branch->user->documentType,
-                'role' => $roleData,
-            ];
-        }
-
         return $this->successResponse(
-            [
-                'id' => $branch->id,
-                'name' => $branch->name,
-                'address' => $branch->address,
-                'phone' => $branch->phone,
-                'total_spaces' => $branch->total_spaces,
-                'available_spaces' => $branch->available_spaces,
-                'is_active' => $branch->is_active,
-                'created_at' => $branch->created_at,
-                'updated_at' => $branch->updated_at,
-                'user' => $userData,
-            ],
+            $branch,
             'Sede encontrada',
             200
         );
@@ -326,15 +168,16 @@ class BranchController extends Controller
      *         required=true,
      *
      *         @OA\JsonContent(
-     *             required={"name", "address", "total_spaces", "available_spaces"},
+     *             required={"name", "code", "address"},
      *
-     *             @OA\Property(property="name", type="string", maxLength=100),
-     *             @OA\Property(property="address", type="string"),
-     *             @OA\Property(property="phone", type="string", maxLength=20),
-     *             @OA\Property(property="total_spaces", type="integer", minimum=1),
-     *             @OA\Property(property="available_spaces", type="integer", minimum=0),
-     *             @OA\Property(property="is_active", type="boolean"),
-     *             @OA\Property(property="user_id", type="integer")
+     *             @OA\Property(property="name", type="string", maxLength=100, example="Sede Norte"),
+     *             @OA\Property(property="code", type="string", maxLength=20, example="NORTE"),
+     *             @OA\Property(property="address", type="string", example="Calle 123 #45-67"),
+     *             @OA\Property(property="phone", type="string", maxLength=20, example="3001234567"),
+     *             @OA\Property(property="email", type="string", maxLength=100, example="norte@parqueadero.com"),
+     *             @OA\Property(property="opening_time", type="string", format="time", example="06:00"),
+     *             @OA\Property(property="closing_time", type="string", format="time", example="22:00"),
+     *             @OA\Property(property="is_active", type="boolean", example=true)
      *         )
      *     ),
      *
@@ -367,23 +210,19 @@ class BranchController extends Controller
                 'max:100',
                 Rule::unique('branches')->ignore($branch->id),
             ],
+            'code' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('branches')->ignore($branch->id),
+            ],
             'address' => 'required|string',
             'phone' => 'nullable|string|max:20',
-            'total_spaces' => 'required|integer|min:1',
-            'available_spaces' => 'required|integer|min:0',
+            'email' => 'nullable|email|max:100',
+            'opening_time' => 'nullable|date_format:H:i',
+            'closing_time' => 'nullable|date_format:H:i',
             'is_active' => 'boolean',
-            'user_id' => 'nullable|exists:users,id',
         ]);
-
-        // Validación adicional: available_spaces <= total_spaces
-        $validator->after(function ($validator) use ($request) {
-            if ($request->available_spaces > $request->total_spaces) {
-                $validator->errors()->add(
-                    'available_spaces',
-                    'Los espacios disponibles no pueden ser mayores que el total de espacios.'
-                );
-            }
-        });
 
         if ($validator->fails()) {
             return $this->errorResponse(
@@ -396,67 +235,17 @@ class BranchController extends Controller
         // Actualizar sede
         $branch->update([
             'name' => $request->name,
+            'code' => $request->code,
             'address' => $request->address,
             'phone' => $request->phone,
-            'total_spaces' => $request->total_spaces,
-            'available_spaces' => $request->available_spaces,
+            'email' => $request->email,
+            'opening_time' => $request->opening_time,
+            'closing_time' => $request->closing_time,
             'is_active' => $request->is_active ?? $branch->is_active,
-            'user_id' => $request->user_id,
         ]);
 
-        // Cargar relaciones
-        $branch->load(['user.documentType', 'user.roles']);
-
-        // Formatear user con role
-        $userData = null;
-        if ($branch->user) {
-            $role = $branch->user->roles()->first();
-            $roleData = null;
-            if ($role) {
-                $roleData = [
-                    'id' => $role->id,
-                    'name' => $role->name,
-                    'guard_name' => $role->guard_name,
-                    'created_at' => $role->created_at,
-                    'updated_at' => $role->updated_at,
-                    'permissions' => $role->permissions->map(function ($permission) {
-                        return [
-                            'id' => $permission->id,
-                            'name' => $permission->name,
-                            'guard_name' => $permission->guard_name,
-                            'created_at' => $permission->created_at,
-                            'updated_at' => $permission->updated_at,
-                        ];
-                    })->toArray(),
-                ];
-            }
-
-            $userData = [
-                'id' => $branch->user->id,
-                'name' => $branch->user->name,
-                'last_name' => $branch->user->last_name,
-                'email' => $branch->user->email,
-                'document_number' => $branch->user->document_number,
-                'phone' => $branch->user->phone,
-                'is_active' => $branch->user->is_active,
-                'document_type' => $branch->user->documentType,
-                'role' => $roleData,
-            ];
-        }
-
         return $this->successResponse(
-            [
-                'id' => $branch->id,
-                'name' => $branch->name,
-                'address' => $branch->address,
-                'phone' => $branch->phone,
-                'total_spaces' => $branch->total_spaces,
-                'available_spaces' => $branch->available_spaces,
-                'is_active' => $branch->is_active,
-                'created_at' => $branch->created_at,
-                'updated_at' => $branch->updated_at,
-                'user' => $userData,
-            ],
+            $branch,
             'Sede actualizada exitosamente',
             200
         );

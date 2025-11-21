@@ -17,12 +17,13 @@ class Branch extends Model
      */
     protected $fillable = [
         'name',
+        'code',
         'address',
         'phone',
-        'total_spaces',
-        'available_spaces',
+        'email',
+        'opening_time',
+        'closing_time',
         'is_active',
-        'user_id',
     ];
 
     /**
@@ -33,17 +34,61 @@ class Branch extends Model
     protected function casts(): array
     {
         return [
-            'total_spaces' => 'integer',
-            'available_spaces' => 'integer',
+            'opening_time' => 'datetime:H:i',
+            'closing_time' => 'datetime:H:i',
             'is_active' => 'boolean',
         ];
     }
 
     /**
-     * Get the user that manages the branch.
+     * Get the users assigned to this branch.
      */
-    public function user()
+    public function users()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(User::class, 'user_branches')
+            ->withPivot('is_primary')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the parking capacities for this branch.
+     */
+    public function parkingCapacities()
+    {
+        return $this->hasMany(BranchParkingCapacity::class);
+    }
+
+    /**
+     * Get the rates for this branch.
+     */
+    public function rates()
+    {
+        return $this->hasMany(BranchRate::class);
+    }
+
+    /**
+     * Get the discounts for this branch.
+     */
+    public function discounts()
+    {
+        return $this->hasMany(BranchDiscount::class);
+    }
+
+    /**
+     * Get the flat rates for this branch.
+     */
+    public function flatRates()
+    {
+        return $this->hasMany(BranchFlatRate::class);
+    }
+
+    /**
+     * Get the taxes configured for this branch.
+     */
+    public function taxes()
+    {
+        return $this->belongsToMany(Tax::class, 'branch_taxes')
+            ->withPivot('is_active')
+            ->withTimestamps();
     }
 }
