@@ -17,11 +17,11 @@ class BranchDiscountSeeder extends Seeder
         $branches = Branch::all();
         $vehicleTypes = VehicleType::all();
 
-        // Define discount configurations: minuts => discount_percentage
+        // Define discount configurations: minutes => discount_percentage
         $discountConfigs = [
-            ['minuts' => 120, 'discount_percentage' => 10],  // 10% discount after 2 hours
-            ['minuts' => 240, 'discount_percentage' => 15],  // 15% discount after 4 hours
-            ['minuts' => 480, 'discount_percentage' => 20],  // 20% discount after 8 hours
+            ['minutes' => 120, 'discount_percentage' => 10],  // 10% discount after 2 hours
+            ['minutes' => 240, 'discount_percentage' => 15],  // 15% discount after 4 hours
+            ['minutes' => 480, 'discount_percentage' => 20],  // 20% discount after 8 hours
         ];
 
         foreach ($branches as $branch) {
@@ -31,7 +31,7 @@ class BranchDiscountSeeder extends Seeder
                         [
                             'branch_id' => $branch->id,
                             'vehicle_type_id' => $vehicleType->id,
-                            'minuts' => $config['minuts'],
+                            'minutes' => $config['minutes'],
                         ],
                         [
                             'discount_percentage' => $config['discount_percentage'],

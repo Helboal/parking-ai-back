@@ -16,7 +16,7 @@ class BranchDiscount extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'minuts',
+        'minutes',
         'discount_percentage',
         'is_active',
         'branch_id',
@@ -31,7 +31,7 @@ class BranchDiscount extends Model
     protected function casts(): array
     {
         return [
-            'minuts' => 'integer',
+            'minutes' => 'integer',
             'discount_percentage' => 'integer',
             'is_active' => 'boolean',
             'created_at' => 'datetime',

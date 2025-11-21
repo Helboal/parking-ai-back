@@ -30,8 +30,8 @@ class BranchFlatRateTest extends TestCase
     public function test_can_list_branch_flat_rates(): void
     {
         BranchFlatRate::create([
-            'minuts_threshold' => 720,
-            'flat_rate' => 30000.00,
+            'minutes_threshold' => 720,
+            'flat_rate_amount' => 30000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
@@ -44,16 +44,16 @@ class BranchFlatRateTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    '*' => ['id', 'minuts_threshold', 'flat_rate', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type', 'created_at', 'updated_at'],
+                    '*' => ['id', 'minutes_threshold', 'flat_rate_amount', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type', 'created_at', 'updated_at'],
                 ],
             ]);
     }
 
-    public function test_can_create_branch_flat_rate(): void
+    public function test_can_create_branch_flat_rate_amount(): void
     {
         $flatRateData = [
-            'minuts_threshold' => 720,
-            'flat_rate' => 30000.00,
+            'minutes_threshold' => 720,
+            'flat_rate_amount' => 30000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
@@ -65,29 +65,29 @@ class BranchFlatRateTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'message',
-                'data' => ['id', 'minuts_threshold', 'flat_rate', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type'],
+                'data' => ['id', 'minutes_threshold', 'flat_rate_amount', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type'],
             ]);
 
         $this->assertDatabaseHas('branch_flat_rates', [
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
-            'minuts_threshold' => 720,
+            'minutes_threshold' => 720,
         ]);
     }
 
-    public function test_cannot_create_duplicate_branch_vehicle_flat_rate(): void
+    public function test_cannot_create_duplicate_branch_vehicle_flat_rate_amount(): void
     {
         BranchFlatRate::create([
-            'minuts_threshold' => 720,
-            'flat_rate' => 30000.00,
+            'minutes_threshold' => 720,
+            'flat_rate_amount' => 30000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
         ]);
 
         $flatRateData = [
-            'minuts_threshold' => 600,
-            'flat_rate' => 25000.00,
+            'minutes_threshold' => 600,
+            'flat_rate_amount' => 25000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
@@ -99,11 +99,11 @@ class BranchFlatRateTest extends TestCase
             ->assertJsonValidationErrors(['branch_id']);
     }
 
-    public function test_can_show_branch_flat_rate(): void
+    public function test_can_show_branch_flat_rate_amount(): void
     {
         $flatRate = BranchFlatRate::create([
-            'minuts_threshold' => 720,
-            'flat_rate' => 30000.00,
+            'minutes_threshold' => 720,
+            'flat_rate_amount' => 30000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
@@ -115,29 +115,29 @@ class BranchFlatRateTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'message',
-                'data' => ['id', 'minuts_threshold', 'flat_rate', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type'],
+                'data' => ['id', 'minutes_threshold', 'flat_rate_amount', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type'],
             ])
             ->assertJson([
                 'data' => [
                     'id' => $flatRate->id,
-                    'flat_rate' => '30000.00',
+                    'flat_rate_amount' => '30000.00',
                 ],
             ]);
     }
 
-    public function test_can_update_branch_flat_rate(): void
+    public function test_can_update_branch_flat_rate_amount(): void
     {
         $flatRate = BranchFlatRate::create([
-            'minuts_threshold' => 720,
-            'flat_rate' => 30000.00,
+            'minutes_threshold' => 720,
+            'flat_rate_amount' => 30000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
         ]);
 
         $updateData = [
-            'minuts_threshold' => 600,
-            'flat_rate' => 25000.00,
+            'minutes_threshold' => 600,
+            'flat_rate_amount' => 25000.00,
             'is_active' => false,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
@@ -148,23 +148,23 @@ class BranchFlatRateTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'data' => [
-                    'minuts_threshold' => 600,
-                    'flat_rate' => '25000.00',
+                    'minutes_threshold' => 600,
+                    'flat_rate_amount' => '25000.00',
                     'is_active' => false,
                 ],
             ]);
 
         $this->assertDatabaseHas('branch_flat_rates', [
             'id' => $flatRate->id,
-            'flat_rate' => 25000.00,
+            'flat_rate_amount' => 25000.00,
         ]);
     }
 
-    public function test_can_delete_branch_flat_rate(): void
+    public function test_can_delete_branch_flat_rate_amount(): void
     {
         $flatRate = BranchFlatRate::create([
-            'minuts_threshold' => 720,
-            'flat_rate' => 30000.00,
+            'minutes_threshold' => 720,
+            'flat_rate_amount' => 30000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
@@ -176,26 +176,26 @@ class BranchFlatRateTest extends TestCase
         $this->assertDatabaseMissing('branch_flat_rates', ['id' => $flatRate->id]);
     }
 
-    public function test_cannot_create_flat_rate_with_invalid_data(): void
+    public function test_cannot_create_flat_rate_amount_with_invalid_data(): void
     {
         $response = $this->actingAs($this->user)->postJson('/api/admin/branch-flat-rates', []);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['minuts_threshold', 'flat_rate', 'branch_id', 'vehicle_type_id']);
+            ->assertJsonValidationErrors(['minutes_threshold', 'flat_rate_amount', 'branch_id', 'vehicle_type_id']);
     }
 
-    public function test_cannot_show_nonexistent_flat_rate(): void
+    public function test_cannot_show_nonexistent_flat_rate_amount(): void
     {
         $response = $this->actingAs($this->user)->getJson('/api/admin/branch-flat-rates/9999');
 
         $response->assertStatus(404);
     }
 
-    public function test_cannot_update_nonexistent_flat_rate(): void
+    public function test_cannot_update_nonexistent_flat_rate_amount(): void
     {
         $response = $this->actingAs($this->user)->putJson('/api/admin/branch-flat-rates/9999', [
-            'minuts_threshold' => 720,
-            'flat_rate' => 30000.00,
+            'minutes_threshold' => 720,
+            'flat_rate_amount' => 30000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
@@ -204,25 +204,25 @@ class BranchFlatRateTest extends TestCase
         $response->assertStatus(404);
     }
 
-    public function test_cannot_delete_nonexistent_flat_rate(): void
+    public function test_cannot_delete_nonexistent_flat_rate_amount(): void
     {
         $response = $this->actingAs($this->user)->deleteJson('/api/admin/branch-flat-rates/9999');
 
         $response->assertStatus(404);
     }
 
-    public function test_requires_authentication_to_list_flat_rates(): void
+    public function test_requires_authentication_to_list_flat_rate_amounts(): void
     {
         $response = $this->getJson('/api/admin/branch-flat-rates');
 
         $response->assertStatus(401);
     }
 
-    public function test_requires_authentication_to_create_flat_rate(): void
+    public function test_requires_authentication_to_create_flat_rate_amount(): void
     {
         $response = $this->postJson('/api/admin/branch-flat-rates', [
-            'minuts_threshold' => 720,
-            'flat_rate' => 30000.00,
+            'minutes_threshold' => 720,
+            'flat_rate_amount' => 30000.00,
             'is_active' => true,
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,

@@ -13,11 +13,13 @@ class BranchTax extends Model
     protected $fillable = [
         'branch_id',
         'tax_id',
+        'is_active',
     ];
 
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

@@ -30,7 +30,7 @@ class BranchDiscountTest extends TestCase
     public function test_can_list_branch_discounts(): void
     {
         BranchDiscount::create([
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 10,
             'is_active' => true,
             'branch_id' => $this->branch->id,
@@ -44,7 +44,7 @@ class BranchDiscountTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    '*' => ['id', 'minuts', 'discount_percentage', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type', 'created_at', 'updated_at'],
+                    '*' => ['id', 'minutes', 'discount_percentage', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type', 'created_at', 'updated_at'],
                 ],
             ]);
     }
@@ -52,7 +52,7 @@ class BranchDiscountTest extends TestCase
     public function test_can_create_branch_discount(): void
     {
         $discountData = [
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 10,
             'is_active' => true,
             'branch_id' => $this->branch->id,
@@ -65,13 +65,13 @@ class BranchDiscountTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'message',
-                'data' => ['id', 'minuts', 'discount_percentage', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type'],
+                'data' => ['id', 'minutes', 'discount_percentage', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type'],
             ]);
 
         $this->assertDatabaseHas('branch_discounts', [
             'branch_id' => $this->branch->id,
             'vehicle_type_id' => $this->vehicleType->id,
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 10,
         ]);
     }
@@ -79,7 +79,7 @@ class BranchDiscountTest extends TestCase
     public function test_can_show_branch_discount(): void
     {
         $discount = BranchDiscount::create([
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 10,
             'is_active' => true,
             'branch_id' => $this->branch->id,
@@ -92,12 +92,12 @@ class BranchDiscountTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'message',
-                'data' => ['id', 'minuts', 'discount_percentage', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type'],
+                'data' => ['id', 'minutes', 'discount_percentage', 'is_active', 'branch_id', 'vehicle_type_id', 'branch', 'vehicle_type'],
             ])
             ->assertJson([
                 'data' => [
                     'id' => $discount->id,
-                    'minuts' => 120,
+                    'minutes' => 120,
                     'discount_percentage' => 10,
                 ],
             ]);
@@ -106,7 +106,7 @@ class BranchDiscountTest extends TestCase
     public function test_can_update_branch_discount(): void
     {
         $discount = BranchDiscount::create([
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 10,
             'is_active' => true,
             'branch_id' => $this->branch->id,
@@ -114,7 +114,7 @@ class BranchDiscountTest extends TestCase
         ]);
 
         $updateData = [
-            'minuts' => 240,
+            'minutes' => 240,
             'discount_percentage' => 15,
             'is_active' => false,
             'branch_id' => $this->branch->id,
@@ -126,7 +126,7 @@ class BranchDiscountTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'data' => [
-                    'minuts' => 240,
+                    'minutes' => 240,
                     'discount_percentage' => 15,
                     'is_active' => false,
                 ],
@@ -134,7 +134,7 @@ class BranchDiscountTest extends TestCase
 
         $this->assertDatabaseHas('branch_discounts', [
             'id' => $discount->id,
-            'minuts' => 240,
+            'minutes' => 240,
             'discount_percentage' => 15,
         ]);
     }
@@ -142,7 +142,7 @@ class BranchDiscountTest extends TestCase
     public function test_can_delete_branch_discount(): void
     {
         $discount = BranchDiscount::create([
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 10,
             'is_active' => true,
             'branch_id' => $this->branch->id,
@@ -160,13 +160,13 @@ class BranchDiscountTest extends TestCase
         $response = $this->actingAs($this->user)->postJson('/api/admin/branch-discounts', []);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['minuts', 'discount_percentage', 'branch_id', 'vehicle_type_id']);
+            ->assertJsonValidationErrors(['minutes', 'discount_percentage', 'branch_id', 'vehicle_type_id']);
     }
 
     public function test_cannot_create_discount_with_invalid_percentage(): void
     {
         $response = $this->actingAs($this->user)->postJson('/api/admin/branch-discounts', [
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 150,
             'is_active' => true,
             'branch_id' => $this->branch->id,
@@ -187,7 +187,7 @@ class BranchDiscountTest extends TestCase
     public function test_cannot_update_nonexistent_discount(): void
     {
         $response = $this->actingAs($this->user)->putJson('/api/admin/branch-discounts/9999', [
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 10,
             'is_active' => true,
             'branch_id' => $this->branch->id,
@@ -214,7 +214,7 @@ class BranchDiscountTest extends TestCase
     public function test_requires_authentication_to_create_discount(): void
     {
         $response = $this->postJson('/api/admin/branch-discounts', [
-            'minuts' => 120,
+            'minutes' => 120,
             'discount_percentage' => 10,
             'is_active' => true,
             'branch_id' => $this->branch->id,

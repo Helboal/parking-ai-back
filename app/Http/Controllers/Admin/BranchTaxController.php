@@ -25,6 +25,7 @@ class BranchTaxController extends Controller
         $validator = Validator::make($request->all(), [
             'branch_id' => 'required|exists:branches,id',
             'tax_id' => 'required|exists:taxes,id',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -79,6 +80,7 @@ class BranchTaxController extends Controller
         $validator = Validator::make($request->all(), [
             'branch_id' => 'required|exists:branches,id',
             'tax_id' => 'required|exists:taxes,id',
+            'is_active' => 'boolean',
         ]);
 
         if ($validator->fails()) {
