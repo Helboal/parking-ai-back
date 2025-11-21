@@ -206,6 +206,44 @@ class UserTest extends TestCase
     }
 
     /**
+     * Test store - allows same document_number with different document_type
+     */
+    public function test_store_allows_same_document_number_with_different_type(): void
+    {
+        // Crear un segundo tipo de documento
+        $secondDocType = DocumentType::firstOrCreate(
+            ['code' => 'NIT'],
+            ['name' => 'NIT']
+        );
+
+        // Crear usuario con documento CC 123456
+        $existingUser = User::factory()->create([
+            'document_type_id' => $this->documentType->id, // CC
+            'document_number' => '123456',
+        ]);
+
+        // Intentar crear otro usuario con el MISMO número pero tipo NIT
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->postJson('/api/admin/users', [
+                'name' => 'Juan',
+                'last_name' => 'Pérez',
+                'email' => 'juan.perez@example.com',
+                'password' => 'password123',
+                'document_number' => '123456', // Mismo número
+                'document_type_id' => $secondDocType->id, // Diferente tipo
+                'phone' => '3001234567',
+                'role_id' => $this->role->id,
+            ]);
+
+        // Debe permitirlo porque el índice es compuesto
+        $response->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Usuario creado exitosamente',
+            ]);
+    }
+
+    /**
      * Test store - duplicate email
      */
     public function test_store_fails_with_duplicate_email(): void

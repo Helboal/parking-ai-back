@@ -35,23 +35,26 @@ class BranchTest extends TestCase
     public function test_index_returns_all_branches(): void
     {
         // Crear sedes
-        $branch1 = Branch::create([
+        Branch::create([
             'name' => 'Sede Norte',
+            'code' => 'NORTE',
             'address' => 'Calle 100 # 15-20',
             'phone' => '3001234567',
-            'total_spaces' => 150,
-            'available_spaces' => 150,
+            'email' => 'norte@parqueadero.com',
+            'opening_time' => '06:00',
+            'closing_time' => '22:00',
             'is_active' => true,
         ]);
 
-        $branch2 = Branch::create([
+        Branch::create([
             'name' => 'Sede Sur',
+            'code' => 'SUR',
             'address' => 'Carrera 30 # 45-80',
             'phone' => '3009876543',
-            'total_spaces' => 200,
-            'available_spaces' => 180,
+            'email' => 'sur@parqueadero.com',
+            'opening_time' => '07:00',
+            'closing_time' => '23:00',
             'is_active' => true,
-            'user_id' => $this->user->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
@@ -65,14 +68,15 @@ class BranchTest extends TestCase
                     '*' => [
                         'id',
                         'name',
+                        'code',
                         'address',
                         'phone',
-                        'total_spaces',
-                        'available_spaces',
+                        'email',
+                        'opening_time',
+                        'closing_time',
                         'is_active',
                         'created_at',
                         'updated_at',
-                        'user',
                     ],
                 ],
                 'code',
@@ -93,12 +97,13 @@ class BranchTest extends TestCase
     {
         $data = [
             'name' => 'Sede Centro',
+            'code' => 'CENTRO',
             'address' => 'Avenida Jiménez # 7-35',
             'phone' => '3005555555',
-            'total_spaces' => 100,
-            'available_spaces' => 100,
+            'email' => 'centro@parqueadero.com',
+            'opening_time' => '05:00',
+            'closing_time' => '20:00',
             'is_active' => true,
-            'user_id' => $this->user->id,
         ];
 
         $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
@@ -111,14 +116,15 @@ class BranchTest extends TestCase
                 'data' => [
                     'id',
                     'name',
+                    'code',
                     'address',
                     'phone',
-                    'total_spaces',
-                    'available_spaces',
+                    'email',
+                    'opening_time',
+                    'closing_time',
                     'is_active',
                     'created_at',
                     'updated_at',
-                    'user',
                 ],
                 'code',
             ])
@@ -128,17 +134,17 @@ class BranchTest extends TestCase
                 'code' => 201,
                 'data' => [
                     'name' => 'Sede Centro',
+                    'code' => 'CENTRO',
                     'address' => 'Avenida Jiménez # 7-35',
                     'phone' => '3005555555',
-                    'total_spaces' => 100,
-                    'available_spaces' => 100,
+                    'email' => 'centro@parqueadero.com',
                     'is_active' => true,
                 ],
             ]);
 
         $this->assertDatabaseHas('branches', [
             'name' => 'Sede Centro',
-            'total_spaces' => 100,
+            'code' => 'CENTRO',
         ]);
     }
 
@@ -159,31 +165,9 @@ class BranchTest extends TestCase
             ->assertJsonStructure([
                 'errors' => [
                     'name',
+                    'code',
                     'address',
-                    'total_spaces',
-                    'available_spaces',
                 ],
-            ]);
-    }
-
-    /**
-     * Test store - available_spaces greater than total_spaces
-     */
-    public function test_store_fails_when_available_spaces_exceeds_total_spaces(): void
-    {
-        $data = [
-            'name' => 'Sede Test',
-            'address' => 'Calle Test',
-            'total_spaces' => 100,
-            'available_spaces' => 150,
-        ];
-
-        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
-            ->postJson('/api/admin/branches', $data);
-
-        $response->assertStatus(422)
-            ->assertJsonStructure([
-                'errors' => ['available_spaces'],
             ]);
     }
 
@@ -194,22 +178,82 @@ class BranchTest extends TestCase
     {
         Branch::create([
             'name' => 'Sede Duplicada',
+            'code' => 'DUP1',
             'address' => 'Calle 1',
-            'total_spaces' => 100,
-            'available_spaces' => 100,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/admin/branches', [
                 'name' => 'Sede Duplicada',
+                'code' => 'DUP2',
                 'address' => 'Calle 2',
-                'total_spaces' => 50,
-                'available_spaces' => 50,
             ]);
 
         $response->assertStatus(422)
             ->assertJsonStructure([
                 'errors' => ['name'],
+            ]);
+    }
+
+    /**
+     * Test store - duplicate code
+     */
+    public function test_store_fails_with_duplicate_code(): void
+    {
+        Branch::create([
+            'name' => 'Sede Primera',
+            'code' => 'CODIGO',
+            'address' => 'Calle 1',
+        ]);
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->postJson('/api/admin/branches', [
+                'name' => 'Sede Segunda',
+                'code' => 'CODIGO',
+                'address' => 'Calle 2',
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonStructure([
+                'errors' => ['code'],
+            ]);
+    }
+
+    /**
+     * Test store - invalid email format
+     */
+    public function test_store_fails_with_invalid_email(): void
+    {
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->postJson('/api/admin/branches', [
+                'name' => 'Sede Test',
+                'code' => 'TEST',
+                'address' => 'Calle Test',
+                'email' => 'invalid-email',
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonStructure([
+                'errors' => ['email'],
+            ]);
+    }
+
+    /**
+     * Test store - invalid time format
+     */
+    public function test_store_fails_with_invalid_time_format(): void
+    {
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
+            ->postJson('/api/admin/branches', [
+                'name' => 'Sede Test',
+                'code' => 'TEST',
+                'address' => 'Calle Test',
+                'opening_time' => '25:00',
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonStructure([
+                'errors' => ['opening_time'],
             ]);
     }
 
@@ -220,12 +264,13 @@ class BranchTest extends TestCase
     {
         $branch = Branch::create([
             'name' => 'Sede Test',
+            'code' => 'TEST',
             'address' => 'Calle Test # 10-20',
             'phone' => '3001111111',
-            'total_spaces' => 80,
-            'available_spaces' => 70,
+            'email' => 'test@parqueadero.com',
+            'opening_time' => '06:00',
+            'closing_time' => '22:00',
             'is_active' => true,
-            'user_id' => $this->user->id,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
@@ -239,9 +284,9 @@ class BranchTest extends TestCase
                 'data' => [
                     'id' => $branch->id,
                     'name' => 'Sede Test',
+                    'code' => 'TEST',
                     'address' => 'Calle Test # 10-20',
-                    'total_spaces' => 80,
-                    'available_spaces' => 70,
+                    'email' => 'test@parqueadero.com',
                 ],
             ]);
     }
@@ -269,20 +314,20 @@ class BranchTest extends TestCase
     {
         $branch = Branch::create([
             'name' => 'Sede Original',
+            'code' => 'ORIG',
             'address' => 'Calle Original',
-            'total_spaces' => 100,
-            'available_spaces' => 100,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->putJson('/api/admin/branches/'.$branch->id, [
                 'name' => 'Sede Actualizada',
+                'code' => 'ACT',
                 'address' => 'Calle Actualizada',
                 'phone' => '3002222222',
-                'total_spaces' => 120,
-                'available_spaces' => 110,
+                'email' => 'actualizada@parqueadero.com',
+                'opening_time' => '07:00',
+                'closing_time' => '21:00',
                 'is_active' => true,
-                'user_id' => $this->user->id,
             ]);
 
         $response->assertStatus(200)
@@ -292,41 +337,46 @@ class BranchTest extends TestCase
                 'code' => 200,
                 'data' => [
                     'name' => 'Sede Actualizada',
+                    'code' => 'ACT',
                     'address' => 'Calle Actualizada',
-                    'total_spaces' => 120,
-                    'available_spaces' => 110,
+                    'email' => 'actualizada@parqueadero.com',
                 ],
             ]);
 
         $this->assertDatabaseHas('branches', [
             'id' => $branch->id,
             'name' => 'Sede Actualizada',
+            'code' => 'ACT',
         ]);
     }
 
     /**
-     * Test update - validation available_spaces
+     * Test update - duplicate code validation
      */
-    public function test_update_fails_when_available_spaces_exceeds_total_spaces(): void
+    public function test_update_fails_with_duplicate_code(): void
     {
-        $branch = Branch::create([
-            'name' => 'Sede Test',
-            'address' => 'Calle Test',
-            'total_spaces' => 100,
-            'available_spaces' => 90,
+        Branch::create([
+            'name' => 'Sede Primera',
+            'code' => 'PRIMERA',
+            'address' => 'Calle 1',
+        ]);
+
+        $branch2 = Branch::create([
+            'name' => 'Sede Segunda',
+            'code' => 'SEGUNDA',
+            'address' => 'Calle 2',
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
-            ->putJson('/api/admin/branches/'.$branch->id, [
-                'name' => 'Sede Test',
-                'address' => 'Calle Test',
-                'total_spaces' => 100,
-                'available_spaces' => 150,
+            ->putJson('/api/admin/branches/'.$branch2->id, [
+                'name' => 'Sede Segunda',
+                'code' => 'PRIMERA',
+                'address' => 'Calle 2',
             ]);
 
         $response->assertStatus(422)
             ->assertJsonStructure([
-                'errors' => ['available_spaces'],
+                'errors' => ['code'],
             ]);
     }
 
@@ -338,9 +388,8 @@ class BranchTest extends TestCase
         $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->putJson('/api/admin/branches/999', [
                 'name' => 'Test',
+                'code' => 'TEST',
                 'address' => 'Test',
-                'total_spaces' => 100,
-                'available_spaces' => 100,
             ]);
 
         $response->assertStatus(404)
@@ -358,9 +407,8 @@ class BranchTest extends TestCase
     {
         $branch = Branch::create([
             'name' => 'Sede a Eliminar',
+            'code' => 'ELIM',
             'address' => 'Calle Test',
-            'total_spaces' => 50,
-            'available_spaces' => 50,
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
