@@ -14,7 +14,19 @@ class BranchController extends Controller
     use ApiResponse;
 
     /**
-     * Display a listing of branches.
+     * Listar sucursales
+     *
+     * Obtiene todas las sucursales del sistema con información del usuario responsable
+     *
+     * @OA\Get(
+     *     path="/api/admin/branches",
+     *     tags={"Sucursales"},
+     *     summary="Listar sucursales",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Response(response=200, description="Listado exitoso"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -82,7 +94,34 @@ class BranchController extends Controller
     }
 
     /**
-     * Store a newly created branch.
+     * Crear sucursal
+     *
+     * @OA\Post(
+     *     path="/api/admin/branches",
+     *     tags={"Sucursales"},
+     *     summary="Crear sucursal",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"name", "address", "total_spaces", "available_spaces"},
+     *
+     *             @OA\Property(property="name", type="string", maxLength=100, example="Sede Norte"),
+     *             @OA\Property(property="address", type="string", example="Calle 123 #45-67"),
+     *             @OA\Property(property="phone", type="string", maxLength=20, example="3001234567"),
+     *             @OA\Property(property="total_spaces", type="integer", minimum=1, example=100),
+     *             @OA\Property(property="available_spaces", type="integer", minimum=0, example=100),
+     *             @OA\Property(property="is_active", type="boolean", example=true),
+     *             @OA\Property(property="user_id", type="integer", example=1)
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=201, description="Creada exitosamente"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -187,7 +226,20 @@ class BranchController extends Controller
     }
 
     /**
-     * Display the specified branch.
+     * Obtener sucursal por ID
+     *
+     * @OA\Get(
+     *     path="/api/admin/branches/{id}",
+     *     tags={"Sucursales"},
+     *     summary="Obtener sucursal",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Encontrada exitosamente"),
+     *     @OA\Response(response=404, description="No encontrada"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
@@ -260,7 +312,37 @@ class BranchController extends Controller
     }
 
     /**
-     * Update the specified branch.
+     * Actualizar sucursal
+     *
+     * @OA\Put(
+     *     path="/api/admin/branches/{id}",
+     *     tags={"Sucursales"},
+     *     summary="Actualizar sucursal",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"name", "address", "total_spaces", "available_spaces"},
+     *
+     *             @OA\Property(property="name", type="string", maxLength=100),
+     *             @OA\Property(property="address", type="string"),
+     *             @OA\Property(property="phone", type="string", maxLength=20),
+     *             @OA\Property(property="total_spaces", type="integer", minimum=1),
+     *             @OA\Property(property="available_spaces", type="integer", minimum=0),
+     *             @OA\Property(property="is_active", type="boolean"),
+     *             @OA\Property(property="user_id", type="integer")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Actualizada exitosamente"),
+     *     @OA\Response(response=404, description="No encontrada"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
@@ -381,7 +463,20 @@ class BranchController extends Controller
     }
 
     /**
-     * Remove the specified branch (soft delete).
+     * Eliminar sucursal
+     *
+     * @OA\Delete(
+     *     path="/api/admin/branches/{id}",
+     *     tags={"Sucursales"},
+     *     summary="Eliminar sucursal",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Eliminada exitosamente"),
+     *     @OA\Response(response=404, description="No encontrada"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse

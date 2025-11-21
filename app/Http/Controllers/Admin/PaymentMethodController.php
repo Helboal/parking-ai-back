@@ -13,7 +13,17 @@ class PaymentMethodController extends Controller
     use ApiResponse;
 
     /**
-     * Display a listing of the resource.
+     * Listar métodos de pago
+     *
+     * @OA\Get(
+     *     path="/api/admin/payment-methods",
+     *     tags={"Métodos de Pago"},
+     *     summary="Listar métodos de pago",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Response(response=200, description="Listado exitoso"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function index()
     {
@@ -27,7 +37,30 @@ class PaymentMethodController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crear método de pago
+     *
+     * @OA\Post(
+     *     path="/api/admin/payment-methods",
+     *     tags={"Métodos de Pago"},
+     *     summary="Crear método de pago",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"name", "code"},
+     *
+     *             @OA\Property(property="name", type="string", maxLength=50, example="Efectivo"),
+     *             @OA\Property(property="code", type="string", maxLength=20, example="CASH"),
+     *             @OA\Property(property="is_active", type="boolean", example=true)
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=201, description="Creado exitosamente"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function store(Request $request)
     {
@@ -61,7 +94,20 @@ class PaymentMethodController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Obtener método de pago por ID
+     *
+     * @OA\Get(
+     *     path="/api/admin/payment-methods/{id}",
+     *     tags={"Métodos de Pago"},
+     *     summary="Obtener método de pago",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Encontrado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function show(string $id)
     {
@@ -83,7 +129,33 @@ class PaymentMethodController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar método de pago
+     *
+     * @OA\Put(
+     *     path="/api/admin/payment-methods/{id}",
+     *     tags={"Métodos de Pago"},
+     *     summary="Actualizar método de pago",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"name", "code"},
+     *
+     *             @OA\Property(property="name", type="string", maxLength=50),
+     *             @OA\Property(property="code", type="string", maxLength=20),
+     *             @OA\Property(property="is_active", type="boolean")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Actualizado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function update(Request $request, string $id)
     {
@@ -127,7 +199,20 @@ class PaymentMethodController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar método de pago
+     *
+     * @OA\Delete(
+     *     path="/api/admin/payment-methods/{id}",
+     *     tags={"Métodos de Pago"},
+     *     summary="Eliminar método de pago",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Eliminado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function destroy(string $id)
     {

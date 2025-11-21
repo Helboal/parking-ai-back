@@ -16,7 +16,17 @@ class UserController extends Controller
     use ApiResponse;
 
     /**
-     * Display a listing of users.
+     * Listar usuarios
+     *
+     * @OA\Get(
+     *     path="/api/admin/users",
+     *     tags={"Usuarios"},
+     *     summary="Listar usuarios",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Response(response=200, description="Listado exitoso"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -71,7 +81,36 @@ class UserController extends Controller
     }
 
     /**
-     * Store a newly created user.
+     * Crear usuario
+     *
+     * @OA\Post(
+     *     path="/api/admin/users",
+     *     tags={"Usuarios"},
+     *     summary="Crear usuario",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"name", "last_name", "email", "password", "document_number", "document_type_id", "role_id"},
+     *
+     *             @OA\Property(property="name", type="string", maxLength=80, example="Juan"),
+     *             @OA\Property(property="last_name", type="string", maxLength=80, example="Pérez"),
+     *             @OA\Property(property="email", type="string", format="email", example="juan@example.com"),
+     *             @OA\Property(property="password", type="string", minLength=6, example="password123"),
+     *             @OA\Property(property="document_number", type="string", maxLength=50, example="1234567890"),
+     *             @OA\Property(property="document_type_id", type="integer", example=1),
+     *             @OA\Property(property="phone", type="string", maxLength=20, example="3001234567"),
+     *             @OA\Property(property="is_active", type="boolean", example=true),
+     *             @OA\Property(property="role_id", type="integer", example=2)
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=201, description="Creado exitosamente"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -178,7 +217,20 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified user.
+     * Obtener usuario por ID
+     *
+     * @OA\Get(
+     *     path="/api/admin/users/{id}",
+     *     tags={"Usuarios"},
+     *     summary="Obtener usuario",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Encontrado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
@@ -238,7 +290,39 @@ class UserController extends Controller
     }
 
     /**
-     * Update the specified user.
+     * Actualizar usuario
+     *
+     * @OA\Put(
+     *     path="/api/admin/users/{id}",
+     *     tags={"Usuarios"},
+     *     summary="Actualizar usuario",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"name", "last_name", "email", "document_number", "document_type_id", "role_id"},
+     *
+     *             @OA\Property(property="name", type="string", maxLength=80),
+     *             @OA\Property(property="last_name", type="string", maxLength=80),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="password", type="string", minLength=6),
+     *             @OA\Property(property="document_number", type="string", maxLength=50),
+     *             @OA\Property(property="document_type_id", type="integer"),
+     *             @OA\Property(property="phone", type="string", maxLength=20),
+     *             @OA\Property(property="is_active", type="boolean"),
+     *             @OA\Property(property="role_id", type="integer")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Actualizado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
@@ -367,7 +451,20 @@ class UserController extends Controller
     }
 
     /**
-     * Remove the specified user (soft delete).
+     * Eliminar usuario
+     *
+     * @OA\Delete(
+     *     path="/api/admin/users/{id}",
+     *     tags={"Usuarios"},
+     *     summary="Eliminar usuario",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Eliminado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      *
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse

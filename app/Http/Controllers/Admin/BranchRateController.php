@@ -14,7 +14,38 @@ class BranchRateController extends Controller
     use ApiResponse;
 
     /**
-     * Display a listing of the resource.
+     * Listar tarifas por sucursal
+     *
+     * Obtiene el listado completo de tarifas por minuto configuradas para cada
+     * sucursal según el tipo de vehículo.
+     *
+     * @OA\Get(
+     *     path="/api/admin/branch-rates",
+     *     tags={"Tarifas por Sucursal"},
+     *     summary="Listar tarifas por sucursal",
+     *     description="Retorna todas las tarifas configuradas por sucursal y tipo de vehículo",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Listado exitoso",
+     *
+     *         @OA\JsonContent(
+     *
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Branch rates retrieved successfully"),
+     *             @OA\Property(property="data", type="array", @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="rate_per_minute", type="number", format="float", example=50.00),
+     *                 @OA\Property(property="is_active", type="boolean", example=true),
+     *                 @OA\Property(property="branch_id", type="integer", example=1),
+     *                 @OA\Property(property="vehicle_type_id", type="integer", example=1)
+     *             ))
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function index(): JsonResponse
     {
@@ -27,7 +58,35 @@ class BranchRateController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crear nueva tarifa por sucursal
+     *
+     * Permite registrar una tarifa por minuto para una sucursal específica
+     * según el tipo de vehículo.
+     *
+     * @OA\Post(
+     *     path="/api/admin/branch-rates",
+     *     tags={"Tarifas por Sucursal"},
+     *     summary="Crear tarifa por sucursal",
+     *     description="Registra una nueva tarifa para una sucursal",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"rate_per_minute", "branch_id", "vehicle_type_id"},
+     *
+     *             @OA\Property(property="rate_per_minute", type="number", format="float", minimum=0, example=50.00),
+     *             @OA\Property(property="is_active", type="boolean", example=true),
+     *             @OA\Property(property="branch_id", type="integer", example=1),
+     *             @OA\Property(property="vehicle_type_id", type="integer", example=1)
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=201, description="Tarifa creada exitosamente"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function store(Request $request): JsonResponse
     {
@@ -62,7 +121,20 @@ class BranchRateController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Obtener tarifa por ID
+     *
+     * @OA\Get(
+     *     path="/api/admin/branch-rates/{id}",
+     *     tags={"Tarifas por Sucursal"},
+     *     summary="Obtener tarifa por sucursal",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Tarifa encontrada"),
+     *     @OA\Response(response=404, description="Tarifa no encontrada"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function show(string $id): JsonResponse
     {

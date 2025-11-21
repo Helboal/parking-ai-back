@@ -13,7 +13,18 @@ class SubscriptionTypeController extends Controller
     use ApiResponse;
 
     /**
-     * Display a listing of the resource.
+     * Listar tipos de suscripción
+     *
+     * @OA\Get(
+     *     path="/api/admin/subscription-types",
+     *     tags={"Tipos de Suscripción"},
+     *     summary="Listar tipos de suscripción",
+     *     description="Retorna todos los tipos de suscripción ordenados por duración",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Response(response=200, description="Listado exitoso"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function index()
     {
@@ -27,7 +38,30 @@ class SubscriptionTypeController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crear tipo de suscripción
+     *
+     * @OA\Post(
+     *     path="/api/admin/subscription-types",
+     *     tags={"Tipos de Suscripción"},
+     *     summary="Crear tipo de suscripción",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"name", "code", "duration_days"},
+     *
+     *             @OA\Property(property="name", type="string", maxLength=50, example="Mensual"),
+     *             @OA\Property(property="code", type="string", maxLength=20, example="MONTHLY"),
+     *             @OA\Property(property="duration_days", type="integer", minimum=1, example=30)
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=201, description="Creado exitosamente"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function store(Request $request)
     {
@@ -61,7 +95,20 @@ class SubscriptionTypeController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Obtener tipo de suscripción por ID
+     *
+     * @OA\Get(
+     *     path="/api/admin/subscription-types/{id}",
+     *     tags={"Tipos de Suscripción"},
+     *     summary="Obtener tipo de suscripción",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Encontrado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function show(string $id)
     {
@@ -83,7 +130,33 @@ class SubscriptionTypeController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar tipo de suscripción
+     *
+     * @OA\Put(
+     *     path="/api/admin/subscription-types/{id}",
+     *     tags={"Tipos de Suscripción"},
+     *     summary="Actualizar tipo de suscripción",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"name", "code", "duration_days"},
+     *
+     *             @OA\Property(property="name", type="string", maxLength=50),
+     *             @OA\Property(property="code", type="string", maxLength=20),
+     *             @OA\Property(property="duration_days", type="integer", minimum=1)
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Actualizado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=422, description="Errores de validación"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function update(Request $request, string $id)
     {
@@ -127,7 +200,20 @@ class SubscriptionTypeController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar tipo de suscripción
+     *
+     * @OA\Delete(
+     *     path="/api/admin/subscription-types/{id}",
+     *     tags={"Tipos de Suscripción"},
+     *     summary="Eliminar tipo de suscripción",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Eliminado exitosamente"),
+     *     @OA\Response(response=404, description="No encontrado"),
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function destroy(string $id)
     {
