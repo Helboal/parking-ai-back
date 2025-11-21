@@ -21,7 +21,7 @@ class BranchDiscountController extends Controller
         $discounts = BranchDiscount::with(['branch', 'vehicleType'])
             ->orderBy('branch_id')
             ->orderBy('vehicle_type_id')
-            ->orderBy('minuts')
+            ->orderBy('minutes')
             ->get();
 
         return $this->successResponse($discounts, 'Branch discounts retrieved successfully');
@@ -33,7 +33,7 @@ class BranchDiscountController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'minuts' => 'required|integer|min:1',
+            'minutes' => 'required|integer|min:1',
             'discount_percentage' => 'required|integer|min:1|max:100',
             'is_active' => 'boolean',
             'branch_id' => 'required|exists:branches,id',
@@ -84,7 +84,7 @@ class BranchDiscountController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'minuts' => 'required|integer|min:1',
+            'minutes' => 'required|integer|min:1',
             'discount_percentage' => 'required|integer|min:1|max:100',
             'is_active' => 'boolean',
             'branch_id' => 'required|exists:branches,id',

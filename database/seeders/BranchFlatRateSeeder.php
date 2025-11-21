@@ -19,13 +19,13 @@ class BranchFlatRateSeeder extends Seeder
 
         // Define flat rate configurations per vehicle type
         $flatRateConfigs = [
-            'CAR' => ['minuts_threshold' => 720, 'flat_rate' => 30000.00],  // 12 hours = $30,000 COP for cars
-            'MOTO' => ['minuts_threshold' => 720, 'flat_rate' => 20000.00], // 12 hours = $20,000 COP for motorcycles
+            'CAR' => ['minutes_threshold' => 720, 'flat_rate_amount' => 30000.00],  // 12 hours = $30,000 COP for cars
+            'MOTO' => ['minutes_threshold' => 720, 'flat_rate_amount' => 20000.00], // 12 hours = $20,000 COP for motorcycles
         ];
 
         foreach ($branches as $branch) {
             foreach ($vehicleTypes as $vehicleType) {
-                $config = $flatRateConfigs[$vehicleType->code] ?? ['minuts_threshold' => 720, 'flat_rate' => 25000.00];
+                $config = $flatRateConfigs[$vehicleType->code] ?? ['minutes_threshold' => 720, 'flat_rate_amount' => 25000.00];
 
                 BranchFlatRate::firstOrCreate(
                     [
@@ -33,8 +33,8 @@ class BranchFlatRateSeeder extends Seeder
                         'vehicle_type_id' => $vehicleType->id,
                     ],
                     [
-                        'minuts_threshold' => $config['minuts_threshold'],
-                        'flat_rate' => $config['flat_rate'],
+                        'minutes_threshold' => $config['minutes_threshold'],
+                        'flat_rate_amount' => $config['flat_rate_amount'],
                         'is_active' => true,
                     ]
                 );

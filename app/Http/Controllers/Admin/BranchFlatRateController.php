@@ -26,8 +26,8 @@ class BranchFlatRateController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'minuts_threshold' => 'required|integer|min:1',
-            'flat_rate' => 'required|numeric|min:0',
+            'minutes_threshold' => 'required|integer|min:1',
+            'flat_rate_amount' => 'required|numeric|min:0',
             'is_active' => 'boolean',
             'branch_id' => 'required|exists:branches,id',
             'vehicle_type_id' => 'required|exists:vehicle_types,id',
@@ -83,8 +83,8 @@ class BranchFlatRateController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'minuts_threshold' => 'required|integer|min:1',
-            'flat_rate' => 'required|numeric|min:0',
+            'minutes_threshold' => 'required|integer|min:1',
+            'flat_rate_amount' => 'required|numeric|min:0',
             'is_active' => 'boolean',
             'branch_id' => 'required|exists:branches,id',
             'vehicle_type_id' => 'required|exists:vehicle_types,id',

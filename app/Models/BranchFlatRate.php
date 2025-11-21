@@ -16,8 +16,8 @@ class BranchFlatRate extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'minuts_threshold',
-        'flat_rate',
+        'minutes_threshold',
+        'flat_rate_amount',
         'is_active',
         'branch_id',
         'vehicle_type_id',
@@ -31,8 +31,8 @@ class BranchFlatRate extends Model
     protected function casts(): array
     {
         return [
-            'minuts_threshold' => 'integer',
-            'flat_rate' => 'decimal:2',
+            'minutes_threshold' => 'integer',
+            'flat_rate_amount' => 'decimal:2',
             'is_active' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
