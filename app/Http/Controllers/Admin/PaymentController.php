@@ -93,14 +93,10 @@ class PaymentController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'amount' => 'required|numeric|min:0',
-            'payment_datetime' => 'required|date',
-            'status' => 'required|in:pending,completed,failed,refunded',
-            'reference_number' => 'nullable|string|max:100',
             'invoice_id' => 'nullable|exists:invoices,id',
             'subscription_id' => 'nullable|exists:subscriptions,id',
             'payment_method_id' => 'required|exists:payment_methods,id',
-            'user_id' => 'nullable|exists:users,id',
+            'reference_number' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
         ]);
 
@@ -108,7 +104,7 @@ class PaymentController extends Controller
             return $this->errorResponse('Errores de validación', $validator->errors(), 422);
         }
 
-        // Validar que al menos uno de invoice_id o subscription_id esté presente
+        // LÓGICA DE NEGOCIO: Validar que al menos uno de invoice_id o subscription_id esté presente
         if (empty($request->invoice_id) && empty($request->subscription_id)) {
             return $this->errorResponse(
                 'Errores de validación',
@@ -117,10 +113,74 @@ class PaymentController extends Controller
             );
         }
 
-        $payment = Payment::create($validator->validated());
+        // LÓGICA DE NEGOCIO: Validar que no se proporcionen ambos
+        if (!empty($request->invoice_id) && !empty($request->subscription_id)) {
+            return $this->errorResponse(
+                'Errores de validación',
+                ['invoice_or_subscription' => ['Solo puede proporcionar invoice_id O subscription_id, no ambos']],
+                422
+            );
+        }
+
+        // LÓGICA DE NEGOCIO: Determinar el monto según el tipo de pago
+        $amount = 0;
+        $paymentFor = '';
+
+        if ($request->invoice_id) {
+            $invoice = \App\Models\Invoice::find($request->invoice_id);
+
+            // Verificar si ya tiene pagos
+            $totalPaid = \App\Models\Payment::where('invoice_id', $invoice->id)
+                ->where('status', 'completed')
+                ->sum('amount');
+
+            if ($totalPaid >= $invoice->total) {
+                return $this->errorResponse(
+                    'La factura ya está pagada',
+                    ['invoice' => ['Esta factura ya ha sido pagada completamente']],
+                    422
+                );
+            }
+
+            $amount = $invoice->total - $totalPaid;
+            $paymentFor = 'factura #' . $invoice->id;
+        }
+
+        if ($request->subscription_id) {
+            $subscription = \App\Models\Subscription::find($request->subscription_id);
+
+            if (!$subscription->is_active) {
+                return $this->errorResponse(
+                    'La suscripción no está activa',
+                    ['subscription' => ['No se puede pagar una suscripción inactiva']],
+                    422
+                );
+            }
+
+            $amount = $subscription->amount;
+            $paymentFor = 'suscripción #' . $subscription->id;
+        }
+
+        // Crear el pago
+        $payment = Payment::create([
+            'amount' => $amount,
+            'payment_datetime' => now(),
+            'status' => 'completed',
+            'reference_number' => $request->reference_number,
+            'invoice_id' => $request->invoice_id,
+            'subscription_id' => $request->subscription_id,
+            'payment_method_id' => $request->payment_method_id,
+            'user_id' => auth()->id(),
+            'notes' => $request->notes,
+        ]);
+
         $payment->load(['invoice', 'subscription', 'paymentMethod', 'user']);
 
-        return $this->successResponse($payment, 'Pago creado exitosamente', 201);
+        return $this->successResponse(
+            $payment,
+            "Pago de $" . number_format($amount, 2) . " registrado exitosamente para $paymentFor",
+            201
+        );
     }
 
     /**

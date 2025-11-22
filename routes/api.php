@@ -51,6 +51,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('user-branches', UserBranchController::class);
         Route::apiResource('subscriptions', SubscriptionController::class);
         Route::apiResource('entries', EntryController::class);
+
+        // Operaciones de negocio - Entries
+        Route::post('entries/{id}/exit', [EntryController::class, 'registerExit']);
+
         Route::apiResource('invoices', InvoiceController::class);
         Route::apiResource('payments', PaymentController::class);
     });
