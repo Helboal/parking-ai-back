@@ -30,17 +30,19 @@ class InvoiceTaxFactory extends Factory
         $invoice = Invoice::inRandomOrder()->first() ?? Invoice::factory()->create();
         $invoiceId = is_object($invoice) ? $invoice->id : $invoice;
 
-        // tax_id: Tax::inRandomOrder()->first()->id ?? Tax::factory()
+        // tax_id: obtener o crear IVA por defecto
         $tax = Tax::where('is_active', true)->inRandomOrder()->first();
 
         if (!$tax) {
             // Si no hay impuestos, crear uno por defecto (IVA 19%)
-            $tax = Tax::create([
-                'name' => 'IVA',
-                'code' => 'IVA',
-                'percentage' => 19.00,
-                'is_active' => true,
-            ]);
+            $tax = Tax::firstOrCreate(
+                ['code' => 'IVA'],
+                [
+                    'name' => 'IVA',
+                    'percentage' => 19.00,
+                    'is_active' => true,
+                ]
+            );
         }
 
         $taxId = $tax->id;

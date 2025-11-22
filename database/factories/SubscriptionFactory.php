@@ -29,19 +29,29 @@ class SubscriptionFactory extends Factory
     public function definition(): array
     {
         // Obtener o crear tipos necesarios
-        $subscriptionType = SubscriptionType::inRandomOrder()->first() ?? SubscriptionType::factory();
-        $branch = Branch::inRandomOrder()->first() ?? Branch::factory();
-        $vehicleType = VehicleType::inRandomOrder()->first() ?? VehicleType::factory();
+        $subscriptionType = SubscriptionType::inRandomOrder()->first();
+        if (!$subscriptionType) {
+            $subscriptionType = SubscriptionType::firstOrCreate(
+                ['code' => 'MONTHLY'],
+                ['name' => 'Mensual', 'duration_days' => 30]
+            );
+        }
 
-        // Si es un modelo, obtener el ID
-        $subscriptionTypeId = is_object($subscriptionType) ? $subscriptionType->id : $subscriptionType;
-        $branchId = is_object($branch) ? $branch->id : $branch;
-        $vehicleTypeId = is_object($vehicleType) ? $vehicleType->id : $vehicleType;
+        $branch = Branch::inRandomOrder()->first();
+        if (!$branch) {
+            $branch = Branch::factory()->create();
+        }
+
+        $vehicleType = VehicleType::inRandomOrder()->first();
+        if (!$vehicleType) {
+            $vehicleType = VehicleType::firstOrCreate(
+                ['code' => 'CAR'],
+                ['name' => 'Automóvil']
+            );
+        }
 
         // Obtener la duración según el tipo de suscripción
-        $duration = is_object($subscriptionType)
-            ? $subscriptionType->duration_days
-            : SubscriptionType::find($subscriptionTypeId)->duration_days ?? 30;
+        $duration = $subscriptionType->duration_days;
 
         // Fecha de inicio aleatoria en los últimos 6 meses
         $startDate = fake()->dateTimeBetween('-6 months', 'now');
@@ -58,9 +68,9 @@ class SubscriptionFactory extends Factory
             'amount' => fake()->randomFloat(2, 50000, 500000),
             'is_active' => $isActive,
             'customer_id' => Customer::factory(),
-            'branch_id' => $branchId,
-            'vehicle_type_id' => $vehicleTypeId,
-            'subscription_type_id' => $subscriptionTypeId,
+            'branch_id' => $branch->id,
+            'vehicle_type_id' => $vehicleType->id,
+            'subscription_type_id' => $subscriptionType->id,
         ];
     }
 
