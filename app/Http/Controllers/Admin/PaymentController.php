@@ -50,20 +50,16 @@ class PaymentController extends Controller
      *     path="/api/admin/payments",
      *     tags={"Payments"},
      *     summary="Crear un nuevo pago",
-     *     description="Crea un nuevo registro de pago para una factura o suscripción",
+     *     description="Crea un nuevo registro de pago para una factura o suscripción. El monto se calcula automáticamente según el balance pendiente de la factura o el monto de la suscripción. El pago se registra automáticamente como completado con la fecha/hora actual y el usuario autenticado.",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"amount", "payment_datetime", "status", "payment_method_id"},
-     *             @OA\Property(property="amount", type="number", format="decimal", example=50000.00, description="Monto del pago"),
-     *             @OA\Property(property="payment_datetime", type="string", format="date-time", example="2024-01-15 14:30:00", description="Fecha y hora del pago"),
-     *             @OA\Property(property="status", type="string", enum={"pending", "completed", "failed", "refunded"}, example="completed", description="Estado del pago"),
-     *             @OA\Property(property="reference_number", type="string", example="TRX-123456", description="Número de referencia de la transacción"),
-     *             @OA\Property(property="invoice_id", type="integer", example=1, description="ID de la factura (requerido si no hay subscription_id)"),
-     *             @OA\Property(property="subscription_id", type="integer", example=null, description="ID de la suscripción (requerido si no hay invoice_id)"),
+     *             required={"payment_method_id"},
+     *             @OA\Property(property="invoice_id", type="integer", example=1, description="ID de la factura a pagar (debe proporcionar invoice_id O subscription_id, no ambos)"),
+     *             @OA\Property(property="subscription_id", type="integer", example=null, description="ID de la suscripción a pagar (debe proporcionar invoice_id O subscription_id, no ambos)"),
      *             @OA\Property(property="payment_method_id", type="integer", example=1, description="ID del método de pago"),
-     *             @OA\Property(property="user_id", type="integer", example=1, description="ID del usuario que procesó el pago"),
+     *             @OA\Property(property="reference_number", type="string", example="TRX-123456", description="Número de referencia de la transacción"),
      *             @OA\Property(property="notes", type="string", example="Pago en efectivo", description="Notas adicionales")
      *         )
      *     ),

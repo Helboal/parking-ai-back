@@ -2328,6 +2328,60 @@
                 ]
             }
         },
+        "/api/admin/entries/{id}/exit": {
+            "post": {
+                "tags": [
+                    "Entradas"
+                ],
+                "summary": "Registrar salida de vehículo",
+                "description": "Registra la salida del vehículo, calcula la tarifa y genera la factura automáticamente",
+                "operationId": "86c773b991b8b68dde6ec6e15924f06b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Salida sin novedad"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Salida registrada exitosamente con factura"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/entry-types": {
             "get": {
                 "tags": [
@@ -2963,7 +3017,7 @@
                     "Facturas"
                 ],
                 "summary": "Listar facturas",
-                "description": "Listar facturas",
+                "description": "Obtiene todas las facturas generadas automáticamente",
                 "operationId": "3c24dc2eef7a22cb98e4c1fee80b3643",
                 "responses": {
                     "200": {
@@ -2978,83 +3032,19 @@
                         "sanctum": []
                     }
                 ]
-            },
-            "post": {
+            }
+        },
+        "/api/admin/invoices/pending": {
+            "get": {
                 "tags": [
                     "Facturas"
                 ],
-                "summary": "Crear factura",
-                "description": "Crear factura",
-                "operationId": "8e885f3fbc53eff706c7650611aacbb1",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "rate_per_minute",
-                                    "flat_rate_applied",
-                                    "subtotal",
-                                    "total",
-                                    "entry_id"
-                                ],
-                                "properties": {
-                                    "rate_per_minute": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0,
-                                        "example": 100
-                                    },
-                                    "discount_percentage": {
-                                        "type": "integer",
-                                        "maximum": 100,
-                                        "minimum": 0,
-                                        "example": 10
-                                    },
-                                    "flat_rate_applied": {
-                                        "type": "boolean",
-                                        "example": false
-                                    },
-                                    "subtotal": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0,
-                                        "example": 5000
-                                    },
-                                    "discount_amount": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0,
-                                        "example": 500
-                                    },
-                                    "tax_amount": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0,
-                                        "example": 855
-                                    },
-                                    "total": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0,
-                                        "example": 5355
-                                    },
-                                    "entry_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
+                "summary": "Listar facturas pendientes de pago",
+                "description": "Obtiene todas las facturas que no han sido pagadas completamente",
+                "operationId": "6170d78e6715bd76c509f2b26f0a4cd3",
                 "responses": {
-                    "201": {
-                        "description": "Creado exitosamente"
-                    },
-                    "422": {
-                        "description": "Errores de validación"
+                    "200": {
+                        "description": "Listado exitoso"
                     },
                     "401": {
                         "description": "No autenticado"
@@ -3073,7 +3063,7 @@
                     "Facturas"
                 ],
                 "summary": "Obtener factura",
-                "description": "Obtener factura por ID",
+                "description": "Obtiene los detalles de una factura específica",
                 "operationId": "de7a9a9213bfce155f8c8827d569406e",
                 "parameters": [
                     {
@@ -3088,132 +3078,6 @@
                 "responses": {
                     "200": {
                         "description": "Encontrado exitosamente"
-                    },
-                    "404": {
-                        "description": "No encontrado"
-                    },
-                    "401": {
-                        "description": "No autenticado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "Facturas"
-                ],
-                "summary": "Actualizar factura",
-                "description": "Actualizar factura",
-                "operationId": "7c44c29ba93993d4bb0ceadbcd16393a",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "rate_per_minute",
-                                    "flat_rate_applied",
-                                    "subtotal",
-                                    "total",
-                                    "entry_id"
-                                ],
-                                "properties": {
-                                    "rate_per_minute": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0
-                                    },
-                                    "discount_percentage": {
-                                        "type": "integer",
-                                        "maximum": 100,
-                                        "minimum": 0
-                                    },
-                                    "flat_rate_applied": {
-                                        "type": "boolean"
-                                    },
-                                    "subtotal": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0
-                                    },
-                                    "discount_amount": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0
-                                    },
-                                    "tax_amount": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0
-                                    },
-                                    "total": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "minimum": 0
-                                    },
-                                    "entry_id": {
-                                        "type": "integer"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Actualizado exitosamente"
-                    },
-                    "404": {
-                        "description": "No encontrado"
-                    },
-                    "422": {
-                        "description": "Errores de validación"
-                    },
-                    "401": {
-                        "description": "No autenticado"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Facturas"
-                ],
-                "summary": "Eliminar factura",
-                "description": "Eliminar factura",
-                "operationId": "1f438ef0d59f267eb057a882844ca736",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Eliminado exitosamente"
                     },
                     "404": {
                         "description": "No encontrado"
@@ -3280,7 +3144,7 @@
                     "Payments"
                 ],
                 "summary": "Crear un nuevo pago",
-                "description": "Crea un nuevo registro de pago para una factura o suscripción",
+                "description": "Crea un nuevo registro de pago para una factura o suscripción. El monto se calcula automáticamente según el balance pendiente de la factura o el monto de la suscripción. El pago se registra automáticamente como completado con la fecha/hora actual y el usuario autenticado.",
                 "operationId": "a59c12889aa0721e9be13f299243e670",
                 "requestBody": {
                     "required": true,
@@ -3288,47 +3152,16 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "amount",
-                                    "payment_datetime",
-                                    "status",
                                     "payment_method_id"
                                 ],
                                 "properties": {
-                                    "amount": {
-                                        "description": "Monto del pago",
-                                        "type": "number",
-                                        "format": "decimal",
-                                        "example": 50000
-                                    },
-                                    "payment_datetime": {
-                                        "description": "Fecha y hora del pago",
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2024-01-15 14:30:00"
-                                    },
-                                    "status": {
-                                        "description": "Estado del pago",
-                                        "type": "string",
-                                        "enum": [
-                                            "pending",
-                                            "completed",
-                                            "failed",
-                                            "refunded"
-                                        ],
-                                        "example": "completed"
-                                    },
-                                    "reference_number": {
-                                        "description": "Número de referencia de la transacción",
-                                        "type": "string",
-                                        "example": "TRX-123456"
-                                    },
                                     "invoice_id": {
-                                        "description": "ID de la factura (requerido si no hay subscription_id)",
+                                        "description": "ID de la factura a pagar (debe proporcionar invoice_id O subscription_id, no ambos)",
                                         "type": "integer",
                                         "example": 1
                                     },
                                     "subscription_id": {
-                                        "description": "ID de la suscripción (requerido si no hay invoice_id)",
+                                        "description": "ID de la suscripción a pagar (debe proporcionar invoice_id O subscription_id, no ambos)",
                                         "type": "integer",
                                         "example": null
                                     },
@@ -3337,10 +3170,10 @@
                                         "type": "integer",
                                         "example": 1
                                     },
-                                    "user_id": {
-                                        "description": "ID del usuario que procesó el pago",
-                                        "type": "integer",
-                                        "example": 1
+                                    "reference_number": {
+                                        "description": "Número de referencia de la transacción",
+                                        "type": "string",
+                                        "example": "TRX-123456"
                                     },
                                     "notes": {
                                         "description": "Notas adicionales",
