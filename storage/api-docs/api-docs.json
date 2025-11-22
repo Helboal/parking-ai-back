@@ -2071,8 +2071,8 @@
                 "tags": [
                     "Entradas"
                 ],
-                "summary": "Registrar entrada de vehículo por placa",
-                "description": "Registra la entrada de un vehículo usando solo su placa. FLUJO: 1) Si el vehículo EXISTE: guarda vehicle_id, detecta suscripción automáticamente, retorna info completa. 2) Si el vehículo NO EXISTE: igual registra la entrada guardando solo la placa (vehicle_id = NULL), asume tipo CAR por defecto, genera factura normal en la salida. Puede ser usado por operarios o sistemas automáticos de cámaras.",
+                "summary": "PASO 1: Registrar entrada por placa (sede auto-detectada)",
+                "description": "PASO 1 del flujo de parqueadero. Registra la entrada usando SOLO la placa. SEDE: Se detecta automáticamente del usuario autenticado (sede primaria). VALIDACIÓN: Formato obligatorio CARRO (3L+3N ej.KOR074) o MOTO (3L+2N+1L ej.ART46G). FLUJO: Si vehículo EXISTE: guarda vehicle_id, detecta suscripción activa automáticamente. Si vehículo NO EXISTE: guarda solo placa (vehicle_id=NULL), detecta tipo por patrón.",
                 "operationId": "6e4933c2aa72d16b0a0d695b36f5f838",
                 "requestBody": {
                     "required": true,
@@ -2080,19 +2080,13 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "branch_id",
                                     "license_plate"
                                 ],
                                 "properties": {
-                                    "branch_id": {
-                                        "description": "ID de la sede/sucursal",
-                                        "type": "integer",
-                                        "example": 1
-                                    },
                                     "license_plate": {
-                                        "description": "Placa del vehículo (se normaliza automáticamente a mayúsculas). No es necesario que el vehículo esté registrado.",
+                                        "description": "Placa del vehículo (se normaliza automáticamente a mayúsculas). No es necesario que el vehículo esté registrado. El tipo se detecta por patrón: CARRO=3letras+3números, MOTO=3letras+2números+1letra",
                                         "type": "string",
-                                        "example": "ABC123"
+                                        "example": "KOR074"
                                     },
                                     "notes": {
                                         "description": "Notas adicionales sobre la entrada (opcional)",
@@ -2118,40 +2112,57 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Entrada registrada exitosamente"
+                                            "example": "Entrada registrada exitosamente para vehículo registrado"
                                         },
                                         "data": {
                                             "properties": {
                                                 "entry": {
-                                                    "description": "Datos de la entrada registrada",
+                                                    "description": "Datos de la entrada registrada con todas sus relaciones",
                                                     "type": "object"
                                                 },
+                                                "vehicle_registered": {
+                                                    "description": "Indica si el vehículo está registrado en el sistema (true) o es entrada con placa únicamente (false)",
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
                                                 "vehicle_info": {
+                                                    "description": "Información del vehículo. La estructura varía según si está registrado o no",
                                                     "properties": {
                                                         "license_plate": {
+                                                            "description": "Placa del vehículo (siempre presente)",
                                                             "type": "string",
-                                                            "example": "ABC123"
+                                                            "example": "KOR074"
                                                         },
                                                         "brand": {
+                                                            "description": "Marca del vehículo (solo si vehicle_registered=true)",
                                                             "type": "string",
                                                             "example": "Toyota"
                                                         },
                                                         "model": {
+                                                            "description": "Modelo del vehículo (solo si vehicle_registered=true)",
                                                             "type": "string",
                                                             "example": "Corolla"
                                                         },
                                                         "color": {
+                                                            "description": "Color del vehículo (solo si vehicle_registered=true)",
                                                             "type": "string",
                                                             "example": "Blanco"
                                                         },
                                                         "vehicle_type": {
+                                                            "description": "Tipo de vehículo (solo si vehicle_registered=true)",
                                                             "type": "string",
                                                             "example": "Automóvil"
+                                                        },
+                                                        "registered": {
+                                                            "description": "false cuando vehicle_registered=false (solo incluye license_plate)",
+                                                            "type": "boolean",
+                                                            "example": false
                                                         }
                                                     },
                                                     "type": "object"
                                                 },
                                                 "customer_info": {
+                                                    "description": "Información del cliente propietario (solo si vehicle_registered=true y tiene cliente asignado, NULL en otros casos)",
                                                     "properties": {
                                                         "name": {
                                                             "type": "string",
@@ -2174,6 +2185,7 @@
                                                     "nullable": true
                                                 },
                                                 "subscription_info": {
+                                                    "description": "Información de suscripción activa detectada automáticamente (solo si vehicle_registered=true y el cliente tiene suscripción activa, NULL en otros casos)",
                                                     "properties": {
                                                         "id": {
                                                             "type": "integer",
@@ -2200,12 +2212,14 @@
                                                     "nullable": true
                                                 },
                                                 "capacity_info": {
+                                                    "description": "Información de capacidad del parqueadero actualizada (siempre presente)",
                                                     "properties": {
                                                         "total_spaces": {
                                                             "type": "integer",
                                                             "example": 50
                                                         },
                                                         "occupied_spaces": {
+                                                            "description": "Incluye el vehículo que acaba de entrar",
                                                             "type": "integer",
                                                             "example": 23
                                                         },
@@ -2230,7 +2244,7 @@
                         }
                     },
                     "422": {
-                        "description": "Errores de validación (vehículo ya dentro, sin capacidad disponible)"
+                        "description": "Errores de validación: formato de placa inválido, vehículo ya dentro del parqueadero, sin capacidad disponible, usuario sin sede primaria asignada"
                     },
                     "401": {
                         "description": "No autenticado"
@@ -2282,8 +2296,8 @@
                 "tags": [
                     "Entradas"
                 ],
-                "summary": "Actualizar entrada",
-                "description": "Actualizar entrada",
+                "summary": "[ADMINISTRATIVO] Actualizar entrada manualmente",
+                "description": "SOLO PARA CORRECCIONES ADMINISTRATIVAS. NO usar en el flujo normal del parqueadero. El flujo correcto es: PASO 1 (POST /entries), PASO 2 (POST /entries/{license_plate}/invoice), PASO 3 (POST /entries/{license_plate}/release). Use este endpoint únicamente para corregir datos erróneos o realizar ajustes manuales por problemas del sistema.",
                 "operationId": "1ad36c7c9e9c0b2e68bd8db8f68c9da5",
                 "parameters": [
                     {
@@ -2304,22 +2318,27 @@
                                     "entry_datetime",
                                     "status",
                                     "branch_id",
-                                    "vehicle_id",
                                     "entry_type_id"
                                 ],
                                 "properties": {
                                     "entry_datetime": {
+                                        "description": "Fecha y hora de entrada",
                                         "type": "string",
                                         "format": "date-time"
                                     },
                                     "exit_datetime": {
+                                        "description": "Fecha y hora de salida",
                                         "type": "string",
-                                        "format": "date-time"
+                                        "format": "date-time",
+                                        "nullable": true
                                     },
                                     "total_minutes": {
-                                        "type": "integer"
+                                        "description": "Total de minutos transcurridos",
+                                        "type": "integer",
+                                        "nullable": true
                                     },
                                     "status": {
+                                        "description": "Estado de la entrada",
                                         "type": "string",
                                         "enum": [
                                             "active",
@@ -2328,25 +2347,43 @@
                                         ]
                                     },
                                     "entry_user_id": {
-                                        "type": "integer"
+                                        "description": "ID del usuario que registró la entrada",
+                                        "type": "integer",
+                                        "nullable": true
                                     },
                                     "exit_user_id": {
-                                        "type": "integer"
+                                        "description": "ID del usuario que registró la salida",
+                                        "type": "integer",
+                                        "nullable": true
                                     },
                                     "branch_id": {
+                                        "description": "ID de la sede",
                                         "type": "integer"
                                     },
                                     "vehicle_id": {
-                                        "type": "integer"
+                                        "description": "ID del vehículo registrado (NULL si no está registrado)",
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "license_plate": {
+                                        "description": "Placa del vehículo (requerida si vehicle_id es NULL)",
+                                        "type": "string",
+                                        "example": "KOR074",
+                                        "nullable": true
                                     },
                                     "entry_type_id": {
+                                        "description": "ID del tipo de entrada",
                                         "type": "integer"
                                     },
                                     "subscription_id": {
-                                        "type": "integer"
+                                        "description": "ID de la suscripción (si aplica)",
+                                        "type": "integer",
+                                        "nullable": true
                                     },
                                     "notes": {
-                                        "type": "string"
+                                        "description": "Notas adicionales",
+                                        "type": "string",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -2378,8 +2415,8 @@
                 "tags": [
                     "Entradas"
                 ],
-                "summary": "Eliminar entrada",
-                "description": "Eliminar entrada",
+                "summary": "[ADMINISTRATIVO] Eliminar entrada",
+                "description": "SOLO PARA CORRECCIONES ADMINISTRATIVAS. NO usar en el flujo normal del parqueadero. Este endpoint elimina permanentemente un registro de entrada. Use solo para corregir entradas duplicadas o registros de prueba. ADVERTENCIA: Esto NO libera automáticamente el espacio de parqueadero.",
                 "operationId": "3f947227321b75234c2d16ecaca2f188",
                 "parameters": [
                     {
@@ -2409,22 +2446,89 @@
                 ]
             }
         },
-        "/api/admin/entries/{id}/exit": {
+        "/api/admin/entries/{license_plate}/invoice": {
             "post": {
                 "tags": [
                     "Entradas"
                 ],
-                "summary": "Registrar salida de vehículo",
-                "description": "Registra la salida del vehículo, calcula la tarifa y genera la factura automáticamente",
-                "operationId": "86c773b991b8b68dde6ec6e15924f06b",
+                "summary": "PASO 2: Generar factura y procesar pago",
+                "description": "PASO 2 del flujo de parqueadero. Busca vehículo por placa (debe estar adentro con status='active'), calcula tiempo transcurrido, aplica tarifas/descuentos/impuestos, genera factura y procesa pago EN UNA SOLA OPERACIÓN. CON SUSCRIPCIÓN: Genera factura con total=$0 y relaciona payment existente de la suscripción. SIN SUSCRIPCIÓN: Calcula tarifa normal por minuto. IMPORTANTE: La entrada permanece activa (status='active') después del pago, solo cambia a 'completed' en PASO 3 (salida física).",
+                "operationId": "e6d942236e44cd65008e8579e3ac69fd",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "license_plate",
                         "in": "path",
+                        "description": "Placa del vehículo",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
+                        },
+                        "example": "KOR074"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "payment_method_id"
+                                ],
+                                "properties": {
+                                    "payment_method_id": {
+                                        "description": "ID del método de pago (efectivo, tarjeta, etc.)",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Pago recibido en efectivo"
+                                    }
+                                },
+                                "type": "object"
+                            }
                         }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Factura generada y pago procesado exitosamente"
+                    },
+                    "404": {
+                        "description": "Vehículo no encontrado o no está en el parqueadero"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/entries/{license_plate}/release": {
+            "post": {
+                "tags": [
+                    "Entradas"
+                ],
+                "summary": "PASO 3: Registrar salida física del vehículo",
+                "description": "PASO 3 del flujo de parqueadero (FINAL). Busca vehículo por placa y VALIDA que haya pagado (debe tener factura generada en PASO 2). Si no pagó: error 422 'Debe pagar primero'. Si pagó: registra salida física (exit_datetime=now()), cambia status a 'completed', libera espacio de parqueadero. Funciona tanto para vehículos registrados como no registrados.",
+                "operationId": "42ed7eb7bd18d734be95c00f141756b9",
+                "parameters": [
+                    {
+                        "name": "license_plate",
+                        "in": "path",
+                        "description": "Placa del vehículo",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "KOR074"
                     }
                 ],
                 "requestBody": {
@@ -2444,13 +2548,13 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Salida registrada exitosamente con factura"
+                        "description": "Salida registrada exitosamente"
                     },
                     "404": {
-                        "description": "No encontrado"
+                        "description": "Vehículo no encontrado en el parqueadero"
                     },
                     "422": {
-                        "description": "Errores de validación"
+                        "description": "El vehículo no ha pagado"
                     },
                     "401": {
                         "description": "No autenticado"
@@ -3224,8 +3328,8 @@
                 "tags": [
                     "Payments"
                 ],
-                "summary": "Crear un nuevo pago",
-                "description": "Crea un nuevo registro de pago para una factura o suscripción. El monto se calcula automáticamente según el balance pendiente de la factura o el monto de la suscripción. El pago se registra automáticamente como completado con la fecha/hora actual y el usuario autenticado.",
+                "summary": "[MANUAL] Crear un nuevo pago",
+                "description": "SOLO PARA PAGOS MANUALES/CORRECCIONES. El flujo normal del parqueadero NO usa este endpoint - los pagos se generan automáticamente en POST /entries/{license_plate}/invoice. Use este endpoint únicamente para: pagos manuales de facturas ya generadas, pagos de suscripciones, o correcciones administrativas. El monto se calcula automáticamente según el balance pendiente de la factura o el monto de la suscripción. El pago se registra como completado con la fecha/hora actual y el usuario autenticado.",
                 "operationId": "a59c12889aa0721e9be13f299243e670",
                 "requestBody": {
                     "required": true,
@@ -3369,260 +3473,6 @@
                                         },
                                         "data": {
                                             "type": "object"
-                                        },
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 200
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Pago no encontrado",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Pago no encontrado"
-                                        },
-                                        "data": {
-                                            "type": "null"
-                                        },
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {}
-                                        },
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 404
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "put": {
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Actualizar un pago",
-                "description": "Actualiza los datos de un pago existente",
-                "operationId": "e2888b0aca3c71c1bbb61c4bfe349899",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID del pago",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "amount": {
-                                        "type": "number",
-                                        "format": "decimal",
-                                        "example": 50000
-                                    },
-                                    "payment_datetime": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2024-01-15 14:30:00"
-                                    },
-                                    "status": {
-                                        "type": "string",
-                                        "enum": [
-                                            "pending",
-                                            "completed",
-                                            "failed",
-                                            "refunded"
-                                        ],
-                                        "example": "completed"
-                                    },
-                                    "reference_number": {
-                                        "type": "string",
-                                        "example": "TRX-123456"
-                                    },
-                                    "invoice_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "subscription_id": {
-                                        "type": "integer",
-                                        "example": null
-                                    },
-                                    "payment_method_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "user_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "notes": {
-                                        "type": "string",
-                                        "example": "Pago modificado"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Pago actualizado exitosamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Pago actualizado exitosamente"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        },
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 200
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Pago no encontrado",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Pago no encontrado"
-                                        },
-                                        "data": {
-                                            "type": "null"
-                                        },
-                                        "errors": {
-                                            "type": "array",
-                                            "items": {}
-                                        },
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 404
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Error de validación",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Errores de validación"
-                                        },
-                                        "data": {
-                                            "type": "null"
-                                        },
-                                        "errors": {
-                                            "type": "object"
-                                        },
-                                        "code": {
-                                            "type": "integer",
-                                            "example": 422
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Eliminar un pago",
-                "description": "Elimina un pago del sistema",
-                "operationId": "d531cc10917efb03074f850fe78528d5",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID del pago",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Pago eliminado exitosamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Pago eliminado exitosamente"
-                                        },
-                                        "data": {
-                                            "type": "null"
                                         },
                                         "code": {
                                             "type": "integer",
