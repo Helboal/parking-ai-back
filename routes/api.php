@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\BranchRateController;
 use App\Http\Controllers\Admin\BranchTaxController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DocumentTypeController;
+use App\Http\Controllers\Admin\EntryController;
 use App\Http\Controllers\Admin\EntryTypeController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\SubscriptionController;
@@ -47,5 +48,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('branch-taxes', BranchTaxController::class);
         Route::apiResource('user-branches', UserBranchController::class);
         Route::apiResource('subscriptions', SubscriptionController::class);
+        Route::apiResource('entries', EntryController::class);
     });
 });
