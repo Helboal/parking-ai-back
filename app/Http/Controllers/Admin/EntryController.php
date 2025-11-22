@@ -44,8 +44,8 @@ class EntryController extends Controller
      * @OA\Post(
      *     path="/api/admin/entries",
      *     tags={"Entradas"},
-     *     summary="Registrar entrada de vehículo por placa",
-     *     description="Registra la entrada de un vehículo usando solo su placa. FLUJO: 1) Si el vehículo EXISTE: guarda vehicle_id, detecta suscripción automáticamente, retorna info completa. 2) Si el vehículo NO EXISTE: igual registra la entrada guardando solo la placa (vehicle_id = NULL), asume tipo CAR por defecto, genera factura normal en la salida. Puede ser usado por operarios o sistemas automáticos de cámaras.",
+     *     summary="PASO 1: Registrar entrada por placa (sede auto-detectada)",
+     *     description="PASO 1 del flujo de parqueadero. Registra la entrada usando SOLO la placa. SEDE: Se detecta automáticamente del usuario autenticado (sede primaria). VALIDACIÓN: Formato obligatorio CARRO (3L+3N ej.KOR074) o MOTO (3L+2N+1L ej.ART46G). FLUJO: Si vehículo EXISTE: guarda vehicle_id, detecta suscripción activa automáticamente. Si vehículo NO EXISTE: guarda solo placa (vehicle_id=NULL), detecta tipo por patrón.",
      *     security={{"sanctum": {}}},
      *
      *     @OA\RequestBody(
@@ -66,32 +66,34 @@ class EntryController extends Controller
      *         @OA\JsonContent(
      *
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Entrada registrada exitosamente"),
+     *             @OA\Property(property="message", type="string", example="Entrada registrada exitosamente para vehículo registrado"),
      *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="entry", type="object", description="Datos de la entrada registrada"),
-     *                 @OA\Property(property="vehicle_info", type="object",
-     *                     @OA\Property(property="license_plate", type="string", example="ABC123"),
-     *                     @OA\Property(property="brand", type="string", example="Toyota"),
-     *                     @OA\Property(property="model", type="string", example="Corolla"),
-     *                     @OA\Property(property="color", type="string", example="Blanco"),
-     *                     @OA\Property(property="vehicle_type", type="string", example="Automóvil")
+     *                 @OA\Property(property="entry", type="object", description="Datos de la entrada registrada con todas sus relaciones"),
+     *                 @OA\Property(property="vehicle_registered", type="boolean", example=true, description="Indica si el vehículo está registrado en el sistema (true) o es entrada con placa únicamente (false)"),
+     *                 @OA\Property(property="vehicle_info", type="object", description="Información del vehículo. La estructura varía según si está registrado o no",
+     *                     @OA\Property(property="license_plate", type="string", example="KOR074", description="Placa del vehículo (siempre presente)"),
+     *                     @OA\Property(property="brand", type="string", example="Toyota", description="Marca del vehículo (solo si vehicle_registered=true)"),
+     *                     @OA\Property(property="model", type="string", example="Corolla", description="Modelo del vehículo (solo si vehicle_registered=true)"),
+     *                     @OA\Property(property="color", type="string", example="Blanco", description="Color del vehículo (solo si vehicle_registered=true)"),
+     *                     @OA\Property(property="vehicle_type", type="string", example="Automóvil", description="Tipo de vehículo (solo si vehicle_registered=true)"),
+     *                     @OA\Property(property="registered", type="boolean", example=false, description="false cuando vehicle_registered=false (solo incluye license_plate)")
      *                 ),
-     *                 @OA\Property(property="customer_info", type="object", nullable=true,
+     *                 @OA\Property(property="customer_info", type="object", nullable=true, description="Información del cliente propietario (solo si vehicle_registered=true y tiene cliente asignado, NULL en otros casos)",
      *                     @OA\Property(property="name", type="string", example="Juan Pérez"),
      *                     @OA\Property(property="document", type="string", example="CC 1234567890"),
      *                     @OA\Property(property="phone", type="string", example="3001234567"),
      *                     @OA\Property(property="email", type="string", example="juan@example.com")
      *                 ),
-     *                 @OA\Property(property="subscription_info", type="object", nullable=true,
+     *                 @OA\Property(property="subscription_info", type="object", nullable=true, description="Información de suscripción activa detectada automáticamente (solo si vehicle_registered=true y el cliente tiene suscripción activa, NULL en otros casos)",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="type", type="string", example="Mensual"),
      *                     @OA\Property(property="start_date", type="string", example="2025-01-01"),
      *                     @OA\Property(property="end_date", type="string", example="2025-01-31"),
      *                     @OA\Property(property="is_active", type="boolean", example=true)
      *                 ),
-     *                 @OA\Property(property="capacity_info", type="object",
+     *                 @OA\Property(property="capacity_info", type="object", description="Información de capacidad del parqueadero actualizada (siempre presente)",
      *                     @OA\Property(property="total_spaces", type="integer", example=50),
-     *                     @OA\Property(property="occupied_spaces", type="integer", example=23),
+     *                     @OA\Property(property="occupied_spaces", type="integer", example=23, description="Incluye el vehículo que acaba de entrar"),
      *                     @OA\Property(property="available_spaces", type="integer", example=27)
      *                 )
      *             ),
@@ -99,7 +101,7 @@ class EntryController extends Controller
      *         )
      *     ),
      *
-     *     @OA\Response(response=422, description="Errores de validación (vehículo ya dentro, sin capacidad disponible)"),
+     *     @OA\Response(response=422, description="Errores de validación: formato de placa inválido, vehículo ya dentro del parqueadero, sin capacidad disponible, usuario sin sede primaria asignada"),
      *     @OA\Response(response=401, description="No autenticado")
      * )
      *
@@ -107,14 +109,20 @@ class EntryController extends Controller
      */
     public function store(Request $request)
     {
-        // Validación - Solo requiere placa
+        // Validación - Solo requiere placa con formato válido
         $validator = Validator::make($request->all(), [
-            'license_plate' => 'required|string|max:20',
+            'license_plate' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^[A-Z]{3}(\d{3}|\d{2}[A-Z])$/i', // CARRO: 3L+3N o MOTO: 3L+2N+1L
+            ],
             'notes' => 'nullable|string',
         ], [
             'license_plate.required' => 'La placa del vehículo es requerida.',
             'license_plate.string' => 'La placa debe ser texto.',
             'license_plate.max' => 'La placa no puede exceder 20 caracteres.',
+            'license_plate.regex' => 'La placa debe tener un formato válido: 3 letras + 3 números (CARRO) o 3 letras + 2 números + 1 letra (MOTO). Ejemplo: KOR074 o ART46G',
         ]);
 
         if ($validator->fails()) {
@@ -396,7 +404,8 @@ class EntryController extends Controller
      * @OA\Put(
      *     path="/api/admin/entries/{id}",
      *     tags={"Entradas"},
-     *     summary="Actualizar entrada",
+     *     summary="[ADMINISTRATIVO] Actualizar entrada manualmente",
+     *     description="SOLO PARA CORRECCIONES ADMINISTRATIVAS. NO usar en el flujo normal del parqueadero. El flujo correcto es: PASO 1 (POST /entries), PASO 2 (POST /entries/{license_plate}/invoice), PASO 3 (POST /entries/{license_plate}/release). Use este endpoint únicamente para corregir datos erróneos o realizar ajustes manuales por problemas del sistema.",
      *     security={{"sanctum": {}}},
      *
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
@@ -405,19 +414,20 @@ class EntryController extends Controller
      *         required=true,
      *
      *         @OA\JsonContent(
-     *             required={"entry_datetime", "status", "branch_id", "vehicle_id", "entry_type_id"},
+     *             required={"entry_datetime", "status", "branch_id", "entry_type_id"},
      *
-     *             @OA\Property(property="entry_datetime", type="string", format="date-time"),
-     *             @OA\Property(property="exit_datetime", type="string", format="date-time"),
-     *             @OA\Property(property="total_minutes", type="integer"),
-     *             @OA\Property(property="status", type="string", enum={"active", "completed", "cancelled"}),
-     *             @OA\Property(property="entry_user_id", type="integer"),
-     *             @OA\Property(property="exit_user_id", type="integer"),
-     *             @OA\Property(property="branch_id", type="integer"),
-     *             @OA\Property(property="vehicle_id", type="integer"),
-     *             @OA\Property(property="entry_type_id", type="integer"),
-     *             @OA\Property(property="subscription_id", type="integer"),
-     *             @OA\Property(property="notes", type="string")
+     *             @OA\Property(property="entry_datetime", type="string", format="date-time", description="Fecha y hora de entrada"),
+     *             @OA\Property(property="exit_datetime", type="string", format="date-time", nullable=true, description="Fecha y hora de salida"),
+     *             @OA\Property(property="total_minutes", type="integer", nullable=true, description="Total de minutos transcurridos"),
+     *             @OA\Property(property="status", type="string", enum={"active", "completed", "cancelled"}, description="Estado de la entrada"),
+     *             @OA\Property(property="entry_user_id", type="integer", nullable=true, description="ID del usuario que registró la entrada"),
+     *             @OA\Property(property="exit_user_id", type="integer", nullable=true, description="ID del usuario que registró la salida"),
+     *             @OA\Property(property="branch_id", type="integer", description="ID de la sede"),
+     *             @OA\Property(property="vehicle_id", type="integer", nullable=true, description="ID del vehículo registrado (NULL si no está registrado)"),
+     *             @OA\Property(property="license_plate", type="string", nullable=true, example="KOR074", description="Placa del vehículo (requerida si vehicle_id es NULL)"),
+     *             @OA\Property(property="entry_type_id", type="integer", description="ID del tipo de entrada"),
+     *             @OA\Property(property="subscription_id", type="integer", nullable=true, description="ID de la suscripción (si aplica)"),
+     *             @OA\Property(property="notes", type="string", nullable=true, description="Notas adicionales")
      *         )
      *     ),
      *
@@ -451,7 +461,8 @@ class EntryController extends Controller
             'entry_user_id' => 'nullable|exists:users,id',
             'exit_user_id' => 'nullable|exists:users,id',
             'branch_id' => 'required|exists:branches,id',
-            'vehicle_id' => 'required|exists:vehicles,id',
+            'vehicle_id' => 'nullable|exists:vehicles,id',
+            'license_plate' => 'nullable|string|max:20|regex:/^[A-Z]{3}(\d{3}|\d{2}[A-Z])$/i',
             'entry_type_id' => 'required|exists:entry_types,id',
             'subscription_id' => 'nullable|exists:subscriptions,id',
             'notes' => 'nullable|string',
@@ -468,8 +479,10 @@ class EntryController extends Controller
             'exit_user_id.exists' => 'El usuario de salida no existe.',
             'branch_id.required' => 'La sede es requerida.',
             'branch_id.exists' => 'La sede no existe.',
-            'vehicle_id.required' => 'El vehículo es requerido.',
             'vehicle_id.exists' => 'El vehículo no existe.',
+            'license_plate.string' => 'La placa debe ser texto.',
+            'license_plate.max' => 'La placa no puede exceder 20 caracteres.',
+            'license_plate.regex' => 'La placa debe tener formato válido: 3 letras + 3 números (CARRO) o 3 letras + 2 números + 1 letra (MOTO).',
             'entry_type_id.required' => 'El tipo de entrada es requerido.',
             'entry_type_id.exists' => 'El tipo de entrada no existe.',
             'subscription_id.exists' => 'La suscripción no existe.',
@@ -494,6 +507,7 @@ class EntryController extends Controller
             'exit_user_id' => $request->exit_user_id,
             'branch_id' => $request->branch_id,
             'vehicle_id' => $request->vehicle_id,
+            'license_plate' => $request->license_plate ? strtoupper(trim($request->license_plate)) : null,
             'entry_type_id' => $request->entry_type_id,
             'subscription_id' => $request->subscription_id,
             'notes' => $request->notes,
@@ -515,7 +529,8 @@ class EntryController extends Controller
      * @OA\Delete(
      *     path="/api/admin/entries/{id}",
      *     tags={"Entradas"},
-     *     summary="Eliminar entrada",
+     *     summary="[ADMINISTRATIVO] Eliminar entrada",
+     *     description="SOLO PARA CORRECCIONES ADMINISTRATIVAS. NO usar en el flujo normal del parqueadero. Este endpoint elimina permanentemente un registro de entrada. Use solo para corregir entradas duplicadas o registros de prueba. ADVERTENCIA: Esto NO libera automáticamente el espacio de parqueadero.",
      *     security={{"sanctum": {}}},
      *
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
@@ -555,8 +570,8 @@ class EntryController extends Controller
      * @OA\Post(
      *     path="/api/admin/entries/{license_plate}/invoice",
      *     tags={"Entradas"},
-     *     summary="Generar factura y procesar pago",
-     *     description="Busca el vehículo por placa, calcula el monto a pagar, genera la factura y procesa el pago. Si tiene suscripción activa, genera factura con total=0 y relaciona el payment de la suscripción. La entrada permanece activa (status='active') hasta que se registre la salida física.",
+     *     summary="PASO 2: Generar factura y procesar pago",
+     *     description="PASO 2 del flujo de parqueadero. Busca vehículo por placa (debe estar adentro con status='active'), calcula tiempo transcurrido, aplica tarifas/descuentos/impuestos, genera factura y procesa pago EN UNA SOLA OPERACIÓN. CON SUSCRIPCIÓN: Genera factura con total=$0 y relaciona payment existente de la suscripción. SIN SUSCRIPCIÓN: Calcula tarifa normal por minuto. IMPORTANTE: La entrada permanece activa (status='active') después del pago, solo cambia a 'completed' en PASO 3 (salida física).",
      *     security={{"sanctum": {}}},
      *
      *     @OA\Parameter(name="license_plate", in="path", required=true, @OA\Schema(type="string"), example="KOR074", description="Placa del vehículo"),
@@ -688,10 +703,10 @@ class EntryController extends Controller
             if ($subscriptionPayment) {
                 $payment = \App\Models\Payment::create([
                     'amount' => 0,
-                    'payment_date' => now(),
+                    'payment_datetime' => now(),
                     'payment_method_id' => $request->payment_method_id,
                     'notes' => $request->notes ?? 'Pago cubierto por suscripción',
-                    'customer_id' => $entry->subscription->customer_id,
+                    'user_id' => auth()->id(),
                     'subscription_id' => $entry->subscription_id,
                     'invoice_id' => $invoice->id,
                 ]);
@@ -812,17 +827,12 @@ class EntryController extends Controller
         }
 
         // 10. Procesar pago
-        $customerId = null;
-        if ($entry->vehicle_id && $entry->vehicle && $entry->vehicle->customer) {
-            $customerId = $entry->vehicle->customer_id;
-        }
-
         $payment = \App\Models\Payment::create([
             'amount' => round($total, 2),
-            'payment_date' => now(),
+            'payment_datetime' => now(),
             'payment_method_id' => $request->payment_method_id,
             'notes' => $request->notes,
-            'customer_id' => $customerId,
+            'user_id' => auth()->id(),
             'subscription_id' => null,
             'invoice_id' => $invoice->id,
         ]);
@@ -853,8 +863,8 @@ class EntryController extends Controller
      * @OA\Post(
      *     path="/api/admin/entries/{license_plate}/release",
      *     tags={"Entradas"},
-     *     summary="Registrar salida física del vehículo",
-     *     description="PASO 3: Valida que el vehículo haya pagado y registra la salida física. Libera el espacio de parqueadero. El vehículo debe haber generado la factura y pagado antes de poder salir.",
+     *     summary="PASO 3: Registrar salida física del vehículo",
+     *     description="PASO 3 del flujo de parqueadero (FINAL). Busca vehículo por placa y VALIDA que haya pagado (debe tener factura generada en PASO 2). Si no pagó: error 422 'Debe pagar primero'. Si pagó: registra salida física (exit_datetime=now()), cambia status a 'completed', libera espacio de parqueadero. Funciona tanto para vehículos registrados como no registrados.",
      *     security={{"sanctum": {}}},
      *
      *     @OA\Parameter(name="license_plate", in="path", required=true, @OA\Schema(type="string"), example="KOR074", description="Placa del vehículo"),
@@ -968,238 +978,6 @@ class EntryController extends Controller
                 'message' => 'Salida registrada exitosamente. Espacio liberado.',
             ],
             'Salida registrada exitosamente',
-            200
-        );
-    }
-
-    /**
-     * Registrar salida de vehículo y generar factura automáticamente (DEPRECATED)
-     *
-     * @OA\Post(
-     *     path="/api/admin/entries/{id}/exit",
-     *     tags={"Entradas"},
-     *     summary="[DEPRECATED] Registrar salida de vehículo",
-     *     description="DEPRECATED: Este endpoint combina generación de factura y salida. Use el flujo correcto: 1) POST /entries (entrada), 2) POST /entries/{license_plate}/invoice (pago), 3) POST /entries/{license_plate}/release (salida física)",
-     *     security={{"sanctum": {}}},
-     *
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *
-     *     @OA\RequestBody(
-     *
-     *         @OA\JsonContent(
-     *
-     *             @OA\Property(property="notes", type="string", example="Salida sin novedad")
-     *         )
-     *     ),
-     *
-     *     @OA\Response(response=200, description="Salida registrada exitosamente con factura"),
-     *     @OA\Response(response=404, description="No encontrado"),
-     *     @OA\Response(response=422, description="Errores de validación"),
-     *     @OA\Response(response=401, description="No autenticado")
-     * )
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function registerExit(Request $request, $id)
-    {
-        $entry = Entry::with(['vehicle.vehicleType', 'branch', 'subscription'])->find($id);
-
-        if (! $entry) {
-            return $this->errorResponse(
-                'Entrada no encontrada',
-                ['entry' => ['La entrada no existe.']],
-                404
-            );
-        }
-
-        // Validar que la entrada esté activa
-        if ($entry->status !== 'active') {
-            return $this->errorResponse(
-                'La entrada no está activa',
-                ['entry' => ['Solo se puede registrar salida de entradas activas.']],
-                422
-            );
-        }
-
-        // Registrar salida
-        $exitDatetime = now();
-        $totalMinutes = $entry->entry_datetime->diffInMinutes($exitDatetime);
-
-        $entry->update([
-            'exit_datetime' => $exitDatetime,
-            'total_minutes' => $totalMinutes,
-            'status' => 'completed',
-            'exit_user_id' => auth()->id(),
-            'notes' => $request->notes ?? $entry->notes,
-        ]);
-
-        // LÓGICA DE NEGOCIO: Liberar cupo
-        // Determinar el vehicle_type_id (puede venir del vehículo registrado o detectado por placa)
-        $vehicleTypeId = null;
-        if ($entry->vehicle_id && $entry->vehicle) {
-            $vehicleTypeId = $entry->vehicle->vehicle_type_id;
-        } else {
-            // Si el vehículo no está registrado, detectar tipo por patrón de placa
-            $licensePlate = $entry->license_plate;
-            $vehicleTypeCode = 'CAR'; // Default
-
-            if ($licensePlate) {
-                if (preg_match('/^[A-Z]{3}\d{3}$/', $licensePlate)) {
-                    $vehicleTypeCode = 'CAR';
-                } elseif (preg_match('/^[A-Z]{3}\d{2}[A-Z]$/', $licensePlate)) {
-                    $vehicleTypeCode = 'MOTORCYCLE';
-                }
-            }
-
-            $detectedVehicleType = \App\Models\VehicleType::where('code', $vehicleTypeCode)->first();
-            $vehicleTypeId = $detectedVehicleType ? $detectedVehicleType->id : null;
-        }
-
-        if ($vehicleTypeId) {
-            $capacity = \App\Models\BranchParkingCapacity::where('branch_id', $entry->branch_id)
-                ->where('vehicle_type_id', $vehicleTypeId)
-                ->first();
-
-            if ($capacity) {
-                $capacity->decrement('occupied_spaces');
-            }
-        }
-
-        // LÓGICA DE NEGOCIO: Si es entrada por suscripción, NO generar factura
-        if ($entry->subscription_id) {
-            $entry->load(['entryUser', 'exitUser', 'branch', 'vehicle.customer', 'subscription']);
-
-            return $this->successResponse(
-                $entry,
-                'Salida registrada exitosamente. Entrada por suscripción, no se genera factura.',
-                200
-            );
-        }
-
-        // LÓGICA DE NEGOCIO: Generar factura automáticamente
-        // 1. Obtener tarifa por minuto de la sede para este tipo de vehículo
-        if (! $vehicleTypeId) {
-            return $this->errorResponse(
-                'Error al determinar tipo de vehículo',
-                ['vehicle_type' => ['No se pudo determinar el tipo de vehículo para calcular la tarifa.']],
-                500
-            );
-        }
-
-        $branchRate = \App\Models\BranchRate::where('branch_id', $entry->branch_id)
-            ->where('vehicle_type_id', $vehicleTypeId)
-            ->where('is_active', true)
-            ->first();
-
-        if (! $branchRate) {
-            return $this->errorResponse(
-                'No hay tarifa configurada',
-                ['rate' => ['No hay tarifa configurada para este tipo de vehículo en esta sede.']],
-                422
-            );
-        }
-
-        $ratePerMinute = $branchRate->rate_per_minute;
-
-        // 2. Calcular subtotal base
-        $subtotal = $ratePerMinute * $totalMinutes;
-
-        // 3. Verificar si aplica tarifa plana
-        $flatRateApplied = false;
-        $branchFlatRate = \App\Models\BranchFlatRate::where('branch_id', $entry->branch_id)
-            ->where('vehicle_type_id', $vehicleTypeId)
-            ->where('is_active', true)
-            ->where('minutes_threshold', '<=', $totalMinutes)
-            ->orderBy('minutes_threshold', 'desc')
-            ->first();
-
-        if ($branchFlatRate) {
-            $subtotal = $branchFlatRate->flat_rate_amount;
-            $flatRateApplied = true;
-        }
-
-        // 4. Aplicar descuentos por tiempo
-        $discountPercentage = 0;
-        $branchDiscount = \App\Models\BranchDiscount::where('branch_id', $entry->branch_id)
-            ->where('vehicle_type_id', $vehicleTypeId)
-            ->where('is_active', true)
-            ->where('minutes', '<=', $totalMinutes)
-            ->orderBy('discount_percentage', 'desc')
-            ->first();
-
-        if ($branchDiscount) {
-            $discountPercentage = $branchDiscount->discount_percentage;
-        }
-
-        $discountAmount = ($subtotal * $discountPercentage) / 100;
-
-        // 5. Calcular base imponible (subtotal - descuento)
-        $taxableAmount = $subtotal - $discountAmount;
-
-        // 6. Obtener impuestos de la sede
-        $branchTaxes = \App\Models\BranchTax::where('branch_id', $entry->branch_id)
-            ->where('is_active', true)
-            ->with('tax')
-            ->get();
-
-        $totalTaxAmount = 0;
-        $taxesDetail = [];
-
-        foreach ($branchTaxes as $branchTax) {
-            if ($branchTax->tax && $branchTax->tax->is_active) {
-                $taxAmount = ($taxableAmount * $branchTax->tax->percentage) / 100;
-                $totalTaxAmount += $taxAmount;
-
-                $taxesDetail[] = [
-                    'tax_id' => $branchTax->tax->id,
-                    'tax_percentage' => $branchTax->tax->percentage,
-                    'tax_amount' => round($taxAmount, 2),
-                ];
-            }
-        }
-
-        // 7. Calcular total final
-        $total = $taxableAmount + $totalTaxAmount;
-
-        // 8. Crear factura
-        $invoice = \App\Models\Invoice::create([
-            'rate_per_minute' => $ratePerMinute,
-            'discount_percentage' => $discountPercentage,
-            'flat_rate_applied' => $flatRateApplied,
-            'subtotal' => round($subtotal, 2),
-            'discount_amount' => round($discountAmount, 2),
-            'tax_amount' => round($totalTaxAmount, 2),
-            'total' => round($total, 2),
-            'entry_id' => $entry->id,
-        ]);
-
-        // 9. Crear detalle de impuestos
-        foreach ($taxesDetail as $taxDetail) {
-            \App\Models\InvoiceTax::create([
-                'invoice_id' => $invoice->id,
-                'tax_id' => $taxDetail['tax_id'],
-                'tax_percentage' => $taxDetail['tax_percentage'],
-                'tax_amount' => $taxDetail['tax_amount'],
-            ]);
-        }
-
-        // Cargar todas las relaciones
-        $entry->load([
-            'entryUser',
-            'exitUser',
-            'branch',
-            'vehicle.customer',
-            'vehicle.vehicleType',
-            'invoice.invoiceTaxes.tax',
-        ]);
-
-        return $this->successResponse(
-            [
-                'entry' => $entry,
-                'invoice' => $invoice->load('invoiceTaxes.tax'),
-            ],
-            'Salida registrada exitosamente. Factura generada automáticamente.',
             200
         );
     }
