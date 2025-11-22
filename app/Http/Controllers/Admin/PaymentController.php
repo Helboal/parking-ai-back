@@ -32,7 +32,7 @@ class PaymentController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pagos obtenidos exitosamente"),
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Payment")),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
      *             @OA\Property(property="code", type="integer", example=200)
      *         )
      *     )
@@ -73,7 +73,7 @@ class PaymentController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pago creado exitosamente"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Payment"),
+     *             @OA\Property(property="data", type="object"),
      *             @OA\Property(property="code", type="integer", example=201)
      *         )
      *     ),
@@ -143,7 +143,7 @@ class PaymentController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pago obtenido exitosamente"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Payment"),
+     *             @OA\Property(property="data", type="object"),
      *             @OA\Property(property="code", type="integer", example=200)
      *         )
      *     ),
@@ -205,7 +205,7 @@ class PaymentController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pago actualizado exitosamente"),
-     *             @OA\Property(property="data", ref="#/components/schemas/Payment"),
+     *             @OA\Property(property="data", type="object"),
      *             @OA\Property(property="code", type="integer", example=200)
      *         )
      *     ),
@@ -323,27 +323,3 @@ class PaymentController extends Controller
     }
 }
 
-/**
- * @OA\Schema(
- *     schema="Payment",
- *     type="object",
- *     title="Payment",
- *     description="Modelo de pago",
- *     @OA\Property(property="id", type="integer", example=1, description="ID del pago"),
- *     @OA\Property(property="amount", type="number", format="decimal", example=50000.00, description="Monto del pago"),
- *     @OA\Property(property="payment_datetime", type="string", format="date-time", example="2024-01-15 14:30:00", description="Fecha y hora del pago"),
- *     @OA\Property(property="status", type="string", example="completed", description="Estado del pago"),
- *     @OA\Property(property="reference_number", type="string", example="TRX-123456", description="Número de referencia"),
- *     @OA\Property(property="invoice_id", type="integer", example=1, description="ID de la factura"),
- *     @OA\Property(property="subscription_id", type="integer", example=null, description="ID de la suscripción"),
- *     @OA\Property(property="payment_method_id", type="integer", example=1, description="ID del método de pago"),
- *     @OA\Property(property="user_id", type="integer", example=1, description="ID del usuario que procesó el pago"),
- *     @OA\Property(property="notes", type="string", example="Notas adicionales", description="Notas del pago"),
- *     @OA\Property(property="created_at", type="string", format="date-time", example="2024-01-15 14:30:00"),
- *     @OA\Property(property="updated_at", type="string", format="date-time", example="2024-01-15 14:30:00"),
- *     @OA\Property(property="invoice", ref="#/components/schemas/Invoice", description="Factura asociada"),
- *     @OA\Property(property="subscription", ref="#/components/schemas/Subscription", description="Suscripción asociada"),
- *     @OA\Property(property="payment_method", ref="#/components/schemas/PaymentMethod", description="Método de pago"),
- *     @OA\Property(property="user", ref="#/components/schemas/User", description="Usuario que procesó el pago")
- * )
- */

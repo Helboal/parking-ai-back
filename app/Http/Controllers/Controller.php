@@ -91,6 +91,30 @@ namespace App\Http\Controllers;
  *     name="Asignaciones Usuario-Sucursal",
  *     description="Gestión de asignación de usuarios a sucursales"
  * )
+ * @OA\Tag(
+ *     name="Clientes",
+ *     description="Gestión de clientes del parqueadero"
+ * )
+ * @OA\Tag(
+ *     name="Vehículos",
+ *     description="Gestión de vehículos de los clientes"
+ * )
+ * @OA\Tag(
+ *     name="Suscripciones",
+ *     description="Gestión de suscripciones de clientes por sede"
+ * )
+ * @OA\Tag(
+ *     name="Entradas/Salidas",
+ *     description="Registro de entradas y salidas de vehículos al parqueadero"
+ * )
+ * @OA\Tag(
+ *     name="Facturas",
+ *     description="Gestión de facturación con cálculo de tarifas, descuentos e impuestos"
+ * )
+ * @OA\Tag(
+ *     name="Pagos",
+ *     description="Gestión de pagos de facturas y suscripciones"
+ * )
  */
 abstract class Controller
 {

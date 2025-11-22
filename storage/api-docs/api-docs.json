@@ -26,7 +26,7 @@
                     "Sucursales"
                 ],
                 "summary": "Listar sucursales",
-                "description": "Listar sucursales\n\nObtiene todas las sucursales del sistema con información del usuario responsable",
+                "description": "Listar sucursales\n\nObtiene todas las sucursales del sistema",
                 "operationId": "d73087431bca17088a52862685dadc97",
                 "responses": {
                     "200": {
@@ -56,15 +56,19 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "address",
-                                    "total_spaces",
-                                    "available_spaces"
+                                    "code",
+                                    "address"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
                                         "maxLength": 100,
                                         "example": "Sede Norte"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "NORTE"
                                     },
                                     "address": {
                                         "type": "string",
@@ -75,23 +79,24 @@
                                         "maxLength": 20,
                                         "example": "3001234567"
                                     },
-                                    "total_spaces": {
-                                        "type": "integer",
-                                        "minimum": 1,
-                                        "example": 100
+                                    "email": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "norte@parqueadero.com"
                                     },
-                                    "available_spaces": {
-                                        "type": "integer",
-                                        "minimum": 0,
-                                        "example": 100
+                                    "opening_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "06:00"
+                                    },
+                                    "closing_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "22:00"
                                     },
                                     "is_active": {
                                         "type": "boolean",
                                         "example": true
-                                    },
-                                    "user_id": {
-                                        "type": "integer",
-                                        "example": 1
                                     }
                                 },
                                 "type": "object"
@@ -176,35 +181,47 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "address",
-                                    "total_spaces",
-                                    "available_spaces"
+                                    "code",
+                                    "address"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 100
+                                        "maxLength": 100,
+                                        "example": "Sede Norte"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "NORTE"
                                     },
                                     "address": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "Calle 123 #45-67"
                                     },
                                     "phone": {
                                         "type": "string",
-                                        "maxLength": 20
+                                        "maxLength": 20,
+                                        "example": "3001234567"
                                     },
-                                    "total_spaces": {
-                                        "type": "integer",
-                                        "minimum": 1
+                                    "email": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "norte@parqueadero.com"
                                     },
-                                    "available_spaces": {
-                                        "type": "integer",
-                                        "minimum": 0
+                                    "opening_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "06:00"
+                                    },
+                                    "closing_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "22:00"
                                     },
                                     "is_active": {
-                                        "type": "boolean"
-                                    },
-                                    "user_id": {
-                                        "type": "integer"
+                                        "type": "boolean",
+                                        "example": true
                                     }
                                 },
                                 "type": "object"
@@ -1105,6 +1122,289 @@
                 ]
             }
         },
+        "/api/admin/customers": {
+            "get": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Listar clientes",
+                "description": "Listar clientes",
+                "operationId": "d4673fd730cc33cff28288a89908297d",
+                "responses": {
+                    "200": {
+                        "description": "Listado exitoso"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Crear cliente",
+                "description": "Crear cliente",
+                "operationId": "3db5a45b991fcf59478b8fe071f53cb7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "document_number",
+                                    "first_name",
+                                    "last_name",
+                                    "document_type_id"
+                                ],
+                                "properties": {
+                                    "document_number": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "1234567890"
+                                    },
+                                    "first_name": {
+                                        "type": "string",
+                                        "maxLength": 80,
+                                        "example": "Juan"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "maxLength": 80,
+                                        "example": "Pérez"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "juan@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "6012345678"
+                                    },
+                                    "mobile": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "3001234567"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Calle 123 #45-67"
+                                    },
+                                    "birth_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "1990-01-15"
+                                    },
+                                    "photo_url": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "https://example.com/photo.jpg"
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Cliente frecuente"
+                                    },
+                                    "document_type_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/customers/{id}": {
+            "get": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Obtener cliente",
+                "description": "Obtener cliente por ID",
+                "operationId": "9dbc25f9584c4b06ad89eb256b14097c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Encontrado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Actualizar cliente",
+                "description": "Actualizar cliente",
+                "operationId": "6d8e456aa22a9996c36d4379e7226c64",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "document_number",
+                                    "first_name",
+                                    "last_name",
+                                    "document_type_id"
+                                ],
+                                "properties": {
+                                    "document_number": {
+                                        "type": "string",
+                                        "maxLength": 50
+                                    },
+                                    "first_name": {
+                                        "type": "string",
+                                        "maxLength": 80
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "maxLength": 80
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "maxLength": 20
+                                    },
+                                    "mobile": {
+                                        "type": "string",
+                                        "maxLength": 20
+                                    },
+                                    "address": {
+                                        "type": "string"
+                                    },
+                                    "birth_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "photo_url": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    },
+                                    "document_type_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Actualizado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Eliminar cliente",
+                "description": "Eliminar cliente",
+                "operationId": "69240d6358e3c189dd6531f29581ad7f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/document-types": {
             "get": {
                 "tags": [
@@ -1745,6 +2045,289 @@
                 ]
             }
         },
+        "/api/admin/entries": {
+            "get": {
+                "tags": [
+                    "Entradas"
+                ],
+                "summary": "Listar entradas",
+                "description": "Listar entradas",
+                "operationId": "16bc557c72a3f4b44bd872c77809050e",
+                "responses": {
+                    "200": {
+                        "description": "Listado exitoso"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Entradas"
+                ],
+                "summary": "Crear entrada",
+                "description": "Crear entrada",
+                "operationId": "6e4933c2aa72d16b0a0d695b36f5f838",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "entry_datetime",
+                                    "status",
+                                    "branch_id",
+                                    "vehicle_id",
+                                    "entry_type_id"
+                                ],
+                                "properties": {
+                                    "entry_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-01-21 08:00:00"
+                                    },
+                                    "exit_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-01-21 18:00:00"
+                                    },
+                                    "total_minutes": {
+                                        "type": "integer",
+                                        "example": 600
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "completed",
+                                            "cancelled"
+                                        ],
+                                        "example": "active"
+                                    },
+                                    "entry_user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "exit_user_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "branch_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "vehicle_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "entry_type_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "subscription_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Cliente frecuente"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/entries/{id}": {
+            "get": {
+                "tags": [
+                    "Entradas"
+                ],
+                "summary": "Obtener entrada",
+                "description": "Obtener entrada por ID",
+                "operationId": "7f38918e44adac7f5cd3c3b5b12e5dc5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Encontrado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Entradas"
+                ],
+                "summary": "Actualizar entrada",
+                "description": "Actualizar entrada",
+                "operationId": "1ad36c7c9e9c0b2e68bd8db8f68c9da5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "entry_datetime",
+                                    "status",
+                                    "branch_id",
+                                    "vehicle_id",
+                                    "entry_type_id"
+                                ],
+                                "properties": {
+                                    "entry_datetime": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "exit_datetime": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "total_minutes": {
+                                        "type": "integer"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "completed",
+                                            "cancelled"
+                                        ]
+                                    },
+                                    "entry_user_id": {
+                                        "type": "integer"
+                                    },
+                                    "exit_user_id": {
+                                        "type": "integer"
+                                    },
+                                    "branch_id": {
+                                        "type": "integer"
+                                    },
+                                    "vehicle_id": {
+                                        "type": "integer"
+                                    },
+                                    "entry_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "subscription_id": {
+                                        "type": "integer"
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Actualizado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Entradas"
+                ],
+                "summary": "Eliminar entrada",
+                "description": "Eliminar entrada",
+                "operationId": "3f947227321b75234c2d16ecaca2f188",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/entry-types": {
             "get": {
                 "tags": [
@@ -2374,6 +2957,808 @@
                 ]
             }
         },
+        "/api/admin/invoices": {
+            "get": {
+                "tags": [
+                    "Facturas"
+                ],
+                "summary": "Listar facturas",
+                "description": "Listar facturas",
+                "operationId": "3c24dc2eef7a22cb98e4c1fee80b3643",
+                "responses": {
+                    "200": {
+                        "description": "Listado exitoso"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Facturas"
+                ],
+                "summary": "Crear factura",
+                "description": "Crear factura",
+                "operationId": "8e885f3fbc53eff706c7650611aacbb1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rate_per_minute",
+                                    "flat_rate_applied",
+                                    "subtotal",
+                                    "total",
+                                    "entry_id"
+                                ],
+                                "properties": {
+                                    "rate_per_minute": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0,
+                                        "example": 100
+                                    },
+                                    "discount_percentage": {
+                                        "type": "integer",
+                                        "maximum": 100,
+                                        "minimum": 0,
+                                        "example": 10
+                                    },
+                                    "flat_rate_applied": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "subtotal": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0,
+                                        "example": 5000
+                                    },
+                                    "discount_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0,
+                                        "example": 500
+                                    },
+                                    "tax_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0,
+                                        "example": 855
+                                    },
+                                    "total": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0,
+                                        "example": 5355
+                                    },
+                                    "entry_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/invoices/{id}": {
+            "get": {
+                "tags": [
+                    "Facturas"
+                ],
+                "summary": "Obtener factura",
+                "description": "Obtener factura por ID",
+                "operationId": "de7a9a9213bfce155f8c8827d569406e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Encontrado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Facturas"
+                ],
+                "summary": "Actualizar factura",
+                "description": "Actualizar factura",
+                "operationId": "7c44c29ba93993d4bb0ceadbcd16393a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rate_per_minute",
+                                    "flat_rate_applied",
+                                    "subtotal",
+                                    "total",
+                                    "entry_id"
+                                ],
+                                "properties": {
+                                    "rate_per_minute": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0
+                                    },
+                                    "discount_percentage": {
+                                        "type": "integer",
+                                        "maximum": 100,
+                                        "minimum": 0
+                                    },
+                                    "flat_rate_applied": {
+                                        "type": "boolean"
+                                    },
+                                    "subtotal": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0
+                                    },
+                                    "discount_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0
+                                    },
+                                    "tax_amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0
+                                    },
+                                    "total": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0
+                                    },
+                                    "entry_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Actualizado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Facturas"
+                ],
+                "summary": "Eliminar factura",
+                "description": "Eliminar factura",
+                "operationId": "1f438ef0d59f267eb057a882844ca736",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/payments": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Listar todos los pagos",
+                "description": "Obtiene la lista completa de pagos con sus relaciones",
+                "operationId": "6573b1f1a2f5515049c81af9c5f4263e",
+                "responses": {
+                    "200": {
+                        "description": "Lista de pagos obtenida exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pagos obtenidos exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Crear un nuevo pago",
+                "description": "Crea un nuevo registro de pago para una factura o suscripción",
+                "operationId": "a59c12889aa0721e9be13f299243e670",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "payment_datetime",
+                                    "status",
+                                    "payment_method_id"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "description": "Monto del pago",
+                                        "type": "number",
+                                        "format": "decimal",
+                                        "example": 50000
+                                    },
+                                    "payment_datetime": {
+                                        "description": "Fecha y hora del pago",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2024-01-15 14:30:00"
+                                    },
+                                    "status": {
+                                        "description": "Estado del pago",
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "completed",
+                                            "failed",
+                                            "refunded"
+                                        ],
+                                        "example": "completed"
+                                    },
+                                    "reference_number": {
+                                        "description": "Número de referencia de la transacción",
+                                        "type": "string",
+                                        "example": "TRX-123456"
+                                    },
+                                    "invoice_id": {
+                                        "description": "ID de la factura (requerido si no hay subscription_id)",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "subscription_id": {
+                                        "description": "ID de la suscripción (requerido si no hay invoice_id)",
+                                        "type": "integer",
+                                        "example": null
+                                    },
+                                    "payment_method_id": {
+                                        "description": "ID del método de pago",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "user_id": {
+                                        "description": "ID del usuario que procesó el pago",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "notes": {
+                                        "description": "Notas adicionales",
+                                        "type": "string",
+                                        "example": "Pago en efectivo"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Pago creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pago creado exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 201
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Errores de validación"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/payments/{id}": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Obtener un pago específico",
+                "description": "Obtiene los detalles de un pago por su ID",
+                "operationId": "9b07b9bc63864fd450030255425b9894",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pago",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pago obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pago obtenido exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Pago no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pago no encontrado"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Actualizar un pago",
+                "description": "Actualiza los datos de un pago existente",
+                "operationId": "e2888b0aca3c71c1bbb61c4bfe349899",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pago",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "decimal",
+                                        "example": 50000
+                                    },
+                                    "payment_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2024-01-15 14:30:00"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "completed",
+                                            "failed",
+                                            "refunded"
+                                        ],
+                                        "example": "completed"
+                                    },
+                                    "reference_number": {
+                                        "type": "string",
+                                        "example": "TRX-123456"
+                                    },
+                                    "invoice_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "subscription_id": {
+                                        "type": "integer",
+                                        "example": null
+                                    },
+                                    "payment_method_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Pago modificado"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pago actualizado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pago actualizado exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Pago no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pago no encontrado"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Errores de validación"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 422
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Eliminar un pago",
+                "description": "Elimina un pago del sistema",
+                "operationId": "d531cc10917efb03074f850fe78528d5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del pago",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pago eliminado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pago eliminado exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Pago no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pago no encontrado"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/payment-methods": {
             "get": {
                 "tags": [
@@ -2557,6 +3942,264 @@
                 "summary": "Eliminar método de pago",
                 "description": "Eliminar método de pago",
                 "operationId": "ed4e16bb4f3741e456f0e0f6aa0a87f5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/subscriptions": {
+            "get": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Listar suscripciones",
+                "description": "Listar suscripciones",
+                "operationId": "9af8b3d75896bc1608fe66b815e33a09",
+                "responses": {
+                    "200": {
+                        "description": "Listado exitoso"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Crear suscripción",
+                "description": "Crear suscripción",
+                "operationId": "c8f234a738ba71df97af6300f786db64",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "start_date",
+                                    "end_date",
+                                    "amount",
+                                    "customer_id",
+                                    "branch_id",
+                                    "vehicle_type_id",
+                                    "subscription_type_id"
+                                ],
+                                "properties": {
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-01-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-31"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 250000
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "customer_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "branch_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "vehicle_type_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "subscription_type_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/subscriptions/{id}": {
+            "get": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Obtener suscripción",
+                "description": "Obtener suscripción por ID",
+                "operationId": "19d63f4e363f1a08ddd552bd73cafe55",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Encontrado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Actualizar suscripción",
+                "description": "Actualizar suscripción",
+                "operationId": "4f60dda10297c005ce8c69d6246d6fc5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "start_date",
+                                    "end_date",
+                                    "amount",
+                                    "customer_id",
+                                    "branch_id",
+                                    "vehicle_type_id",
+                                    "subscription_type_id"
+                                ],
+                                "properties": {
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "customer_id": {
+                                        "type": "integer"
+                                    },
+                                    "branch_id": {
+                                        "type": "integer"
+                                    },
+                                    "vehicle_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "subscription_type_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Actualizado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Eliminar suscripción",
+                "description": "Eliminar suscripción",
+                "operationId": "1fe836d4a4cacf0de8325c4cbea5d58f",
                 "parameters": [
                     {
                         "name": "id",
@@ -3765,6 +5408,251 @@
                 ]
             }
         },
+        "/api/admin/vehicles": {
+            "get": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Listar vehículos",
+                "description": "Listar vehículos",
+                "operationId": "18c0090655662b5e48e91b9f82637cfb",
+                "responses": {
+                    "200": {
+                        "description": "Listado exitoso"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Crear vehículo",
+                "description": "Crear vehículo",
+                "operationId": "ffffef66b3510d35075d5128bc45c0b7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "license_plate",
+                                    "customer_id",
+                                    "vehicle_type_id"
+                                ],
+                                "properties": {
+                                    "license_plate": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "ABC123"
+                                    },
+                                    "brand": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "Chevrolet"
+                                    },
+                                    "model": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "Spark GT"
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "maxLength": 30,
+                                        "example": "Rojo"
+                                    },
+                                    "year": {
+                                        "type": "integer",
+                                        "example": 2022
+                                    },
+                                    "customer_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "vehicle_type_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Creado exitosamente"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/vehicles/{id}": {
+            "get": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Obtener vehículo",
+                "description": "Obtener vehículo por ID",
+                "operationId": "7de6b680be32e74363b6bb538b9f8ca5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Encontrado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Actualizar vehículo",
+                "description": "Actualizar vehículo",
+                "operationId": "37ca96e84b7530843d739246eb001b62",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "license_plate",
+                                    "customer_id",
+                                    "vehicle_type_id"
+                                ],
+                                "properties": {
+                                    "license_plate": {
+                                        "type": "string",
+                                        "maxLength": 20
+                                    },
+                                    "brand": {
+                                        "type": "string",
+                                        "maxLength": 50
+                                    },
+                                    "model": {
+                                        "type": "string",
+                                        "maxLength": 50
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "maxLength": 30
+                                    },
+                                    "year": {
+                                        "type": "integer"
+                                    },
+                                    "customer_id": {
+                                        "type": "integer"
+                                    },
+                                    "vehicle_type_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Actualizado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "422": {
+                        "description": "Errores de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Vehículos"
+                ],
+                "summary": "Eliminar vehículo",
+                "description": "Eliminar vehículo",
+                "operationId": "ce37f3bac9e21d2c78af4b186d661837",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminado exitosamente"
+                    },
+                    "404": {
+                        "description": "No encontrado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/vehicle-types": {
             "get": {
                 "tags": [
@@ -4326,6 +6214,10 @@
     },
     "tags": [
         {
+            "name": "Payments",
+            "description": "Gestión de pagos del sistema"
+        },
+        {
             "name": "Autenticación",
             "description": "Endpoints para autenticación y gestión de sesión"
         },
@@ -4366,8 +6258,28 @@
             "description": "Configuración de tarifas por minuto por sucursal y tipo de vehículo"
         },
         {
+            "name": "Clientes",
+            "description": "Gestión de clientes del parqueadero"
+        },
+        {
+            "name": "Vehículos",
+            "description": "Gestión de vehículos de los clientes"
+        },
+        {
+            "name": "Suscripciones",
+            "description": "Gestión de suscripciones de clientes por sede"
+        },
+        {
+            "name": "Facturas",
+            "description": "Gestión de facturación con cálculo de tarifas, descuentos e impuestos"
+        },
+        {
             "name": "Capacidad de Parqueo por Sucursal",
             "description": "Capacidad de Parqueo por Sucursal"
+        },
+        {
+            "name": "Entradas",
+            "description": "Entradas"
         }
     ]
 }
