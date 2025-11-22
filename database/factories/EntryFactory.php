@@ -47,10 +47,13 @@ class EntryFactory extends Factory
         }
 
         // Obtener o crear entidades relacionadas
-        $entryUser = User::inRandomOrder()->first() ?? User::factory();
-        $branch = Branch::inRandomOrder()->first() ?? Branch::factory();
-        $vehicle = Vehicle::inRandomOrder()->first() ?? Vehicle::factory();
-        $entryType = EntryType::inRandomOrder()->first() ?? EntryType::factory();
+        $entryUser = User::inRandomOrder()->first() ?? User::factory()->create();
+        $branch = Branch::inRandomOrder()->first() ?? Branch::factory()->create();
+        $vehicle = Vehicle::inRandomOrder()->first() ?? Vehicle::factory()->create();
+        $entryType = EntryType::firstOrCreate(
+            ['code' => 'REGULAR'],
+            ['name' => 'Regular']
+        );
 
         // subscription_id: null (80%), subscription aleatoria (20%)
         $hasSubscription = fake()->boolean(20);

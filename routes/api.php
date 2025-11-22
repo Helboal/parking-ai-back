@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DocumentTypeController;
 use App\Http\Controllers\Admin\EntryController;
 use App\Http\Controllers\Admin\EntryTypeController;
+use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionTypeController;
@@ -49,5 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('user-branches', UserBranchController::class);
         Route::apiResource('subscriptions', SubscriptionController::class);
         Route::apiResource('entries', EntryController::class);
+        Route::apiResource('invoices', InvoiceController::class);
     });
 });
