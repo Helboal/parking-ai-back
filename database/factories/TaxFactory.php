@@ -28,7 +28,7 @@ class TaxFactory extends Factory
 
         return [
             'name' => $tax['name'],
-            'code' => $tax['code'] . '_' . fake()->unique()->numberBetween(1000, 9999),
+            'code' => $tax['code'].'_'.fake()->unique()->numberBetween(1000, 9999),
             'percentage' => $tax['percentage'],
             'is_active' => fake()->boolean(90), // 90% activos
         ];

@@ -163,7 +163,7 @@ class EntryFactory extends Factory
                 ->first();
 
             // Si no hay suscripciones activas, crear una
-            if (!$subscription) {
+            if (! $subscription) {
                 $subscription = Subscription::factory()->active()->create();
             }
 

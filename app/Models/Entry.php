@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Entry extends Model
 {
@@ -24,6 +25,7 @@ class Entry extends Model
         'exit_user_id',
         'branch_id',
         'vehicle_id',
+        'license_plate',
         'entry_type_id',
         'subscription_id',
         'notes',
@@ -91,5 +93,13 @@ class Entry extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    /**
+     * Get the invoice generated for this entry.
+     */
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
     }
 }

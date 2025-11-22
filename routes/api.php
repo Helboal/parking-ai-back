@@ -51,7 +51,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('user-branches', UserBranchController::class);
         Route::apiResource('subscriptions', SubscriptionController::class);
         Route::apiResource('entries', EntryController::class);
-        Route::apiResource('invoices', InvoiceController::class);
-        Route::apiResource('payments', PaymentController::class);
+
+        // Operaciones de negocio - Entries (Flujo correcto del parqueadero)
+        // PASO 1: POST /entries - Registrar entrada por placa (ya existe en apiResource)
+        Route::post('entries/{license_plate}/invoice', [EntryController::class, 'generateInvoiceAndPayment']); // PASO 2: Generar factura y procesar pago
+        Route::post('entries/{license_plate}/release', [EntryController::class, 'releaseVehicle']); // PASO 3: Registrar salida física
+        Route::post('entries/{id}/exit', [EntryController::class, 'registerExit']); // DEPRECATED: usar el flujo correcto (invoice + release)
+
+        // Invoices - Solo lectura (se generan automáticamente)
+        Route::get('invoices/pending', [InvoiceController::class, 'pending']);
+        Route::get('invoices', [InvoiceController::class, 'index']);
+        Route::get('invoices/{id}', [InvoiceController::class, 'show']);
+
+        Route::apiResource('payments', PaymentController::class)->only(['index', 'store', 'show']);
     });
 });

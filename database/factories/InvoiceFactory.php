@@ -48,12 +48,6 @@ class InvoiceFactory extends Factory
         // total: subtotal - discount_amount + tax_amount
         $total = $subtotal - $discountAmount + $taxAmount;
 
-        // entry_id: Entry::factory()
-        $entry = Entry::inRandomOrder()->first();
-        if (!$entry) {
-            $entry = Entry::factory()->create();
-        }
-
         return [
             'rate_per_minute' => $ratePerMinute,
             'discount_percentage' => $discountPercentage,
@@ -62,7 +56,7 @@ class InvoiceFactory extends Factory
             'discount_amount' => $discountAmount,
             'tax_amount' => $taxAmount,
             'total' => $total,
-            'entry_id' => $entry->id,
+            'entry_id' => Entry::factory(), // Cada invoice necesita su propia entrada
         ];
     }
 

@@ -60,7 +60,7 @@ class PaymentFactory extends Factory
             'invoice_id' => $isForInvoice
                 ? (Invoice::inRandomOrder()->first()?->id ?? Invoice::factory()->create()->id)
                 : null,
-            'subscription_id' => !$isForInvoice
+            'subscription_id' => ! $isForInvoice
                 ? (Subscription::inRandomOrder()->first()?->id ?? null)
                 : null,
             'payment_method_id' => $paymentMethod->id,
