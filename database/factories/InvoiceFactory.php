@@ -49,7 +49,10 @@ class InvoiceFactory extends Factory
         $total = $subtotal - $discountAmount + $taxAmount;
 
         // entry_id: Entry::factory()
-        $entry = Entry::inRandomOrder()->first() ?? Entry::factory();
+        $entry = Entry::inRandomOrder()->first();
+        if (!$entry) {
+            $entry = Entry::factory()->create();
+        }
 
         return [
             'rate_per_minute' => $ratePerMinute,
@@ -59,7 +62,7 @@ class InvoiceFactory extends Factory
             'discount_amount' => $discountAmount,
             'tax_amount' => $taxAmount,
             'total' => $total,
-            'entry_id' => is_object($entry) ? $entry->id : $entry,
+            'entry_id' => $entry->id,
         ];
     }
 
