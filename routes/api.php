@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SubscriptionTypeController;
 use App\Http\Controllers\Admin\TaxController;
 use App\Http\Controllers\Admin\UserBranchController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VehicleController;
 use App\Http\Controllers\Admin\VehicleTypeController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::apiResource('branches', BranchController::class);
         Route::apiResource('customers', CustomerController::class);
+        Route::apiResource('vehicles', VehicleController::class);
         Route::apiResource('vehicle-types', VehicleTypeController::class);
         Route::apiResource('entry-types', EntryTypeController::class);
         Route::apiResource('subscription-types', SubscriptionTypeController::class);
