@@ -107,14 +107,20 @@ class EntryController extends Controller
      */
     public function store(Request $request)
     {
-        // Validación - Solo requiere placa
+        // Validación - Solo requiere placa con formato válido
         $validator = Validator::make($request->all(), [
-            'license_plate' => 'required|string|max:20',
+            'license_plate' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^[A-Z]{3}(\d{3}|\d{2}[A-Z])$/i', // CARRO: 3L+3N o MOTO: 3L+2N+1L
+            ],
             'notes' => 'nullable|string',
         ], [
             'license_plate.required' => 'La placa del vehículo es requerida.',
             'license_plate.string' => 'La placa debe ser texto.',
             'license_plate.max' => 'La placa no puede exceder 20 caracteres.',
+            'license_plate.regex' => 'La placa debe tener un formato válido: 3 letras + 3 números (CARRO) o 3 letras + 2 números + 1 letra (MOTO). Ejemplo: KOR074 o ART46G',
         ]);
 
         if ($validator->fails()) {

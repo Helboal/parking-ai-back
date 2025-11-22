@@ -164,8 +164,17 @@ class EntryTest extends TestCase
     /** @test */
     public function test_store_creates_entry_for_unregistered_vehicle()
     {
+        // Crear capacidad para MOTO
+        $motoType = VehicleType::firstOrCreate(['code' => 'MOTORCYCLE'], ['name' => 'Motocicleta']);
+        BranchParkingCapacity::create([
+            'branch_id' => $this->branch->id,
+            'vehicle_type_id' => $motoType->id,
+            'total_spaces' => 10,
+            'occupied_spaces' => 0,
+        ]);
+
         $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/admin/entries', [
-            'license_plate' => 'XYZ999', // Placa que no existe
+            'license_plate' => 'ART46G', // Placa de MOTO que no existe
         ]);
 
         $response->assertStatus(200)
@@ -175,7 +184,7 @@ class EntryTest extends TestCase
                 'data' => [
                     'vehicle_registered' => false,
                     'vehicle_info' => [
-                        'license_plate' => 'XYZ999',
+                        'license_plate' => 'ART46G',
                         'registered' => false,
                     ],
                     'customer_info' => null,
@@ -185,10 +194,33 @@ class EntryTest extends TestCase
 
         // Verificar que se guardó la placa en la entrada
         $this->assertDatabaseHas('entries', [
-            'license_plate' => 'XYZ999',
+            'license_plate' => 'ART46G',
             'vehicle_id' => null,
             'status' => 'active',
         ]);
+    }
+
+    /** @test */
+    public function test_store_fails_with_invalid_plate_format()
+    {
+        $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/admin/entries', [
+            'license_plate' => 'ABC12', // Formato inválido (muy corta)
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Errores de validación',
+            ])
+            ->assertJsonValidationErrors(['license_plate']);
+
+        // Probar con otro formato inválido
+        $response2 = $this->actingAs($this->user, 'sanctum')->postJson('/api/admin/entries', [
+            'license_plate' => '123ABC', // Formato inválido (números primero)
+        ]);
+
+        $response2->assertStatus(422)
+            ->assertJsonValidationErrors(['license_plate']);
     }
 
     /** @test */
