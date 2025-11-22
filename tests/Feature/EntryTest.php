@@ -257,7 +257,7 @@ class EntryTest extends TestCase
     }
 
     /** @test */
-    public function test_register_exit_creates_invoice_automatically()
+    public function test_invoice_and_release_creates_invoice_and_completes_entry()
     {
         // Incrementar la capacidad ocupada primero (simular que el vehículo entró)
         $capacity = BranchParkingCapacity::where('branch_id', $this->branch->id)
@@ -290,28 +290,39 @@ class EntryTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->actingAs($this->user, 'sanctum')->postJson("/api/admin/entries/{$entry->id}/exit");
+        $paymentMethod = \App\Models\PaymentMethod::firstOrCreate(['code' => 'CASH'], ['name' => 'Efectivo']);
 
-        $response->assertStatus(200)
+        // PASO 2: Generar factura y pago
+        $responseInvoice = $this->actingAs($this->user, 'sanctum')
+            ->postJson("/api/admin/entries/{$this->vehicle->license_plate}/invoice", [
+                'payment_method_id' => $paymentMethod->id,
+            ]);
+
+        $responseInvoice->assertStatus(200);
+
+        // Verificar que se creó la factura
+        $this->assertDatabaseHas('invoices', [
+            'entry_id' => $entry->id,
+        ]);
+
+        // PASO 3: Registrar salida física
+        $responseRelease = $this->actingAs($this->user, 'sanctum')
+            ->postJson("/api/admin/entries/{$this->vehicle->license_plate}/release");
+
+        $responseRelease->assertStatus(200)
             ->assertJsonStructure([
                 'success',
                 'message',
                 'data' => [
                     'entry',
-                    'invoice' => [
-                        'id',
-                        'rate_per_minute',
-                        'subtotal',
-                        'tax_amount',
-                        'total',
-                        'entry_id',
-                    ],
+                    'invoice',
                 ],
             ]);
 
-        // Verificar que se creó la factura
-        $this->assertDatabaseHas('invoices', [
-            'entry_id' => $entry->id,
+        // Verificar que la entrada se completó
+        $this->assertDatabaseHas('entries', [
+            'id' => $entry->id,
+            'status' => 'completed',
         ]);
 
         // Verificar que se liberó el cupo
@@ -322,7 +333,7 @@ class EntryTest extends TestCase
     }
 
     /** @test */
-    public function test_register_exit_does_not_create_invoice_for_subscription()
+    public function test_subscription_entry_generates_zero_invoice_and_completes()
     {
         // Incrementar la capacidad ocupada primero (simular que el vehículo entró)
         $capacity = BranchParkingCapacity::where('branch_id', $this->branch->id)
@@ -345,33 +356,56 @@ class EntryTest extends TestCase
             'subscription_id' => $subscription->id,
         ]);
 
-        $response = $this->actingAs($this->user, 'sanctum')->postJson("/api/admin/entries/{$entry->id}/exit");
+        $paymentMethod = \App\Models\PaymentMethod::firstOrCreate(['code' => 'CASH'], ['name' => 'Efectivo']);
 
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'message' => 'Salida registrada exitosamente. Entrada por suscripción, no se genera factura.',
+        // PASO 2: Generar factura (con total = 0 por suscripción)
+        $responseInvoice = $this->actingAs($this->user, 'sanctum')
+            ->postJson("/api/admin/entries/{$this->vehicle->license_plate}/invoice", [
+                'payment_method_id' => $paymentMethod->id,
             ]);
 
-        // Verificar que NO se creó factura
-        $this->assertDatabaseMissing('invoices', [
+        $responseInvoice->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Factura generada exitosamente. Entrada por suscripción.',
+            ]);
+
+        // Verificar que se creó factura con total = 0
+        $this->assertDatabaseHas('invoices', [
             'entry_id' => $entry->id,
+            'total' => 0,
+        ]);
+
+        // PASO 3: Registrar salida física
+        $responseRelease = $this->actingAs($this->user, 'sanctum')
+            ->postJson("/api/admin/entries/{$this->vehicle->license_plate}/release");
+
+        $responseRelease->assertStatus(200);
+
+        // Verificar que la entrada se completó
+        $this->assertDatabaseHas('entries', [
+            'id' => $entry->id,
+            'status' => 'completed',
         ]);
     }
 
     /** @test */
-    public function test_register_exit_fails_when_entry_not_active()
+    public function test_release_fails_when_vehicle_has_not_paid()
     {
         $entry = Entry::factory()->create([
-            'status' => 'completed',
+            'vehicle_id' => $this->vehicle->id,
+            'branch_id' => $this->branch->id,
+            'status' => 'active',
         ]);
 
-        $response = $this->actingAs($this->user, 'sanctum')->postJson("/api/admin/entries/{$entry->id}/exit");
+        // Intentar salida sin haber pagado (sin factura generada)
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->postJson("/api/admin/entries/{$this->vehicle->license_plate}/release");
 
         $response->assertStatus(422)
             ->assertJson([
                 'success' => false,
-                'message' => 'La entrada no está activa',
+                'message' => 'Debe pagar primero',
             ]);
     }
 
