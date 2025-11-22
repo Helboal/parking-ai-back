@@ -55,7 +55,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // Operaciones de negocio - Entries
         Route::post('entries/{id}/exit', [EntryController::class, 'registerExit']);
 
-        Route::apiResource('invoices', InvoiceController::class);
-        Route::apiResource('payments', PaymentController::class);
+        // Invoices - Solo lectura (se generan automáticamente)
+        Route::get('invoices/pending', [InvoiceController::class, 'pending']);
+        Route::get('invoices', [InvoiceController::class, 'index']);
+        Route::get('invoices/{id}', [InvoiceController::class, 'show']);
+
+        Route::apiResource('payments', PaymentController::class)->only(['index', 'store', 'show']);
     });
 });
