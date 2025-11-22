@@ -85,7 +85,7 @@ class InvoiceController extends Controller
 
         return $this->successResponse(
             $pendingInvoices,
-            count($pendingInvoices) . ' facturas pendientes de pago',
+            count($pendingInvoices).' facturas pendientes de pago',
             200
         );
     }
@@ -118,7 +118,7 @@ class InvoiceController extends Controller
             'invoiceTaxes.tax',
         ])->find($id);
 
-        if (!$invoice) {
+        if (! $invoice) {
             return $this->errorResponse(
                 'Factura no encontrada',
                 ['invoice' => ['La factura no existe.']],

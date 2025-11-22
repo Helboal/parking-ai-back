@@ -69,4 +69,30 @@ class User extends Authenticatable
     {
         return $this->belongsTo(DocumentType::class);
     }
+
+    /**
+     * Get the branches assigned to this user.
+     */
+    public function userBranches()
+    {
+        return $this->hasMany(UserBranch::class);
+    }
+
+    /**
+     * Get the primary branch for this user.
+     */
+    public function primaryBranch()
+    {
+        return $this->hasOne(UserBranch::class)->where('is_primary', true);
+    }
+
+    /**
+     * Get all branches for this user (many-to-many relationship).
+     */
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class, 'user_branches')
+            ->withPivot('is_primary')
+            ->withTimestamps();
+    }
 }

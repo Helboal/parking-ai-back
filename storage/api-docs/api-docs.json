@@ -2071,8 +2071,8 @@
                 "tags": [
                     "Entradas"
                 ],
-                "summary": "Crear entrada",
-                "description": "Crear entrada",
+                "summary": "Registrar entrada de vehículo por placa",
+                "description": "Registra la entrada de un vehículo usando solo su placa. FLUJO: 1) Si el vehículo EXISTE: guarda vehicle_id, detecta suscripción automáticamente, retorna info completa. 2) Si el vehículo NO EXISTE: igual registra la entrada guardando solo la placa (vehicle_id = NULL), asume tipo CAR por defecto, genera factura normal en la salida. Puede ser usado por operarios o sistemas automáticos de cámaras.",
                 "operationId": "6e4933c2aa72d16b0a0d695b36f5f838",
                 "requestBody": {
                     "required": true,
@@ -2080,63 +2080,24 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "entry_datetime",
-                                    "status",
                                     "branch_id",
-                                    "vehicle_id",
-                                    "entry_type_id"
+                                    "license_plate"
                                 ],
                                 "properties": {
-                                    "entry_datetime": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2025-01-21 08:00:00"
-                                    },
-                                    "exit_datetime": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2025-01-21 18:00:00"
-                                    },
-                                    "total_minutes": {
-                                        "type": "integer",
-                                        "example": 600
-                                    },
-                                    "status": {
-                                        "type": "string",
-                                        "enum": [
-                                            "active",
-                                            "completed",
-                                            "cancelled"
-                                        ],
-                                        "example": "active"
-                                    },
-                                    "entry_user_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "exit_user_id": {
-                                        "type": "integer",
-                                        "example": 2
-                                    },
                                     "branch_id": {
+                                        "description": "ID de la sede/sucursal",
                                         "type": "integer",
                                         "example": 1
                                     },
-                                    "vehicle_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "entry_type_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "subscription_id": {
-                                        "type": "integer",
-                                        "example": 1
+                                    "license_plate": {
+                                        "description": "Placa del vehículo (se normaliza automáticamente a mayúsculas). No es necesario que el vehículo esté registrado.",
+                                        "type": "string",
+                                        "example": "ABC123"
                                     },
                                     "notes": {
+                                        "description": "Notas adicionales sobre la entrada (opcional)",
                                         "type": "string",
-                                        "example": "Cliente frecuente"
+                                        "example": "Entrada registrada por cámara"
                                     }
                                 },
                                 "type": "object"
@@ -2145,11 +2106,131 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Creado exitosamente"
+                    "200": {
+                        "description": "Entrada registrada exitosamente con información contextual completa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Entrada registrada exitosamente"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "entry": {
+                                                    "description": "Datos de la entrada registrada",
+                                                    "type": "object"
+                                                },
+                                                "vehicle_info": {
+                                                    "properties": {
+                                                        "license_plate": {
+                                                            "type": "string",
+                                                            "example": "ABC123"
+                                                        },
+                                                        "brand": {
+                                                            "type": "string",
+                                                            "example": "Toyota"
+                                                        },
+                                                        "model": {
+                                                            "type": "string",
+                                                            "example": "Corolla"
+                                                        },
+                                                        "color": {
+                                                            "type": "string",
+                                                            "example": "Blanco"
+                                                        },
+                                                        "vehicle_type": {
+                                                            "type": "string",
+                                                            "example": "Automóvil"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "customer_info": {
+                                                    "properties": {
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Juan Pérez"
+                                                        },
+                                                        "document": {
+                                                            "type": "string",
+                                                            "example": "CC 1234567890"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "3001234567"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "juan@example.com"
+                                                        }
+                                                    },
+                                                    "type": "object",
+                                                    "nullable": true
+                                                },
+                                                "subscription_info": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "type": {
+                                                            "type": "string",
+                                                            "example": "Mensual"
+                                                        },
+                                                        "start_date": {
+                                                            "type": "string",
+                                                            "example": "2025-01-01"
+                                                        },
+                                                        "end_date": {
+                                                            "type": "string",
+                                                            "example": "2025-01-31"
+                                                        },
+                                                        "is_active": {
+                                                            "type": "boolean",
+                                                            "example": true
+                                                        }
+                                                    },
+                                                    "type": "object",
+                                                    "nullable": true
+                                                },
+                                                "capacity_info": {
+                                                    "properties": {
+                                                        "total_spaces": {
+                                                            "type": "integer",
+                                                            "example": 50
+                                                        },
+                                                        "occupied_spaces": {
+                                                            "type": "integer",
+                                                            "example": 23
+                                                        },
+                                                        "available_spaces": {
+                                                            "type": "integer",
+                                                            "example": 27
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "422": {
-                        "description": "Errores de validación"
+                        "description": "Errores de validación (vehículo ya dentro, sin capacidad disponible)"
                     },
                     "401": {
                         "description": "No autenticado"

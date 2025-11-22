@@ -26,10 +26,13 @@ class PaymentController extends Controller
      *     summary="Listar todos los pagos",
      *     description="Obtiene la lista completa de pagos con sus relaciones",
      *     security={{"sanctum":{}}},
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Lista de pagos obtenida exitosamente",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pagos obtenidos exitosamente"),
      *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
@@ -52,10 +55,13 @@ class PaymentController extends Controller
      *     summary="Crear un nuevo pago",
      *     description="Crea un nuevo registro de pago para una factura o suscripción. El monto se calcula automáticamente según el balance pendiente de la factura o el monto de la suscripción. El pago se registra automáticamente como completado con la fecha/hora actual y el usuario autenticado.",
      *     security={{"sanctum":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"payment_method_id"},
+     *
      *             @OA\Property(property="invoice_id", type="integer", example=1, description="ID de la factura a pagar (debe proporcionar invoice_id O subscription_id, no ambos)"),
      *             @OA\Property(property="subscription_id", type="integer", example=null, description="ID de la suscripción a pagar (debe proporcionar invoice_id O subscription_id, no ambos)"),
      *             @OA\Property(property="payment_method_id", type="integer", example=1, description="ID del método de pago"),
@@ -63,20 +69,26 @@ class PaymentController extends Controller
      *             @OA\Property(property="notes", type="string", example="Pago en efectivo", description="Notas adicionales")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=201,
      *         description="Pago creado exitosamente",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pago creado exitosamente"),
      *             @OA\Property(property="data", type="object"),
      *             @OA\Property(property="code", type="integer", example=201)
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=422,
      *         description="Error de validación",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Errores de validación"),
      *             @OA\Property(property="data", type="null"),
@@ -110,7 +122,7 @@ class PaymentController extends Controller
         }
 
         // LÓGICA DE NEGOCIO: Validar que no se proporcionen ambos
-        if (!empty($request->invoice_id) && !empty($request->subscription_id)) {
+        if (! empty($request->invoice_id) && ! empty($request->subscription_id)) {
             return $this->errorResponse(
                 'Errores de validación',
                 ['invoice_or_subscription' => ['Solo puede proporcionar invoice_id O subscription_id, no ambos']],
@@ -139,13 +151,13 @@ class PaymentController extends Controller
             }
 
             $amount = $invoice->total - $totalPaid;
-            $paymentFor = 'factura #' . $invoice->id;
+            $paymentFor = 'factura #'.$invoice->id;
         }
 
         if ($request->subscription_id) {
             $subscription = \App\Models\Subscription::find($request->subscription_id);
 
-            if (!$subscription->is_active) {
+            if (! $subscription->is_active) {
                 return $this->errorResponse(
                     'La suscripción no está activa',
                     ['subscription' => ['No se puede pagar una suscripción inactiva']],
@@ -154,7 +166,7 @@ class PaymentController extends Controller
             }
 
             $amount = $subscription->amount;
-            $paymentFor = 'suscripción #' . $subscription->id;
+            $paymentFor = 'suscripción #'.$subscription->id;
         }
 
         // Crear el pago
@@ -174,7 +186,7 @@ class PaymentController extends Controller
 
         return $this->successResponse(
             $payment,
-            "Pago de $" . number_format($amount, 2) . " registrado exitosamente para $paymentFor",
+            'Pago de $'.number_format($amount, 2)." registrado exitosamente para $paymentFor",
             201
         );
     }
@@ -186,27 +198,35 @@ class PaymentController extends Controller
      *     summary="Obtener un pago específico",
      *     description="Obtiene los detalles de un pago por su ID",
      *     security={{"sanctum":{}}},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID del pago",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Pago obtenido exitosamente",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pago obtenido exitosamente"),
      *             @OA\Property(property="data", type="object"),
      *             @OA\Property(property="code", type="integer", example=200)
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Pago no encontrado",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Pago no encontrado"),
      *             @OA\Property(property="data", type="null"),
@@ -220,7 +240,7 @@ class PaymentController extends Controller
     {
         $payment = Payment::with(['invoice', 'subscription', 'paymentMethod', 'user'])->find($id);
 
-        if (!$payment) {
+        if (! $payment) {
             return $this->errorResponse('Pago no encontrado', [], 404);
         }
 
@@ -234,16 +254,21 @@ class PaymentController extends Controller
      *     summary="Actualizar un pago",
      *     description="Actualiza los datos de un pago existente",
      *     security={{"sanctum":{}}},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID del pago",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="amount", type="number", format="decimal", example=50000.00),
      *             @OA\Property(property="payment_datetime", type="string", format="date-time", example="2024-01-15 14:30:00"),
      *             @OA\Property(property="status", type="string", enum={"pending", "completed", "failed", "refunded"}, example="completed"),
@@ -255,20 +280,26 @@ class PaymentController extends Controller
      *             @OA\Property(property="notes", type="string", example="Pago modificado")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Pago actualizado exitosamente",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pago actualizado exitosamente"),
      *             @OA\Property(property="data", type="object"),
      *             @OA\Property(property="code", type="integer", example=200)
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Pago no encontrado",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Pago no encontrado"),
      *             @OA\Property(property="data", type="null"),
@@ -276,10 +307,13 @@ class PaymentController extends Controller
      *             @OA\Property(property="code", type="integer", example=404)
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=422,
      *         description="Error de validación",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Errores de validación"),
      *             @OA\Property(property="data", type="null"),
@@ -293,7 +327,7 @@ class PaymentController extends Controller
     {
         $payment = Payment::find($id);
 
-        if (!$payment) {
+        if (! $payment) {
             return $this->errorResponse('Pago no encontrado', [], 404);
         }
 
@@ -335,27 +369,35 @@ class PaymentController extends Controller
      *     summary="Eliminar un pago",
      *     description="Elimina un pago del sistema",
      *     security={{"sanctum":{}}},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID del pago",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Pago eliminado exitosamente",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Pago eliminado exitosamente"),
      *             @OA\Property(property="data", type="null"),
      *             @OA\Property(property="code", type="integer", example=200)
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Pago no encontrado",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Pago no encontrado"),
      *             @OA\Property(property="data", type="null"),
@@ -369,7 +411,7 @@ class PaymentController extends Controller
     {
         $payment = Payment::find($id);
 
-        if (!$payment) {
+        if (! $payment) {
             return $this->errorResponse('Pago no encontrado', [], 404);
         }
 
@@ -378,4 +420,3 @@ class PaymentController extends Controller
         return $this->successResponse(null, 'Pago eliminado exitosamente', 200);
     }
 }
-

@@ -30,7 +30,7 @@ class SubscriptionFactory extends Factory
     {
         // Obtener o crear tipos necesarios
         $subscriptionType = SubscriptionType::inRandomOrder()->first();
-        if (!$subscriptionType) {
+        if (! $subscriptionType) {
             $subscriptionType = SubscriptionType::firstOrCreate(
                 ['code' => 'MONTHLY'],
                 ['name' => 'Mensual', 'duration_days' => 30]
@@ -38,12 +38,12 @@ class SubscriptionFactory extends Factory
         }
 
         $branch = Branch::inRandomOrder()->first();
-        if (!$branch) {
+        if (! $branch) {
             $branch = Branch::factory()->create();
         }
 
         $vehicleType = VehicleType::inRandomOrder()->first();
-        if (!$vehicleType) {
+        if (! $vehicleType) {
             $vehicleType = VehicleType::firstOrCreate(
                 ['code' => 'CAR'],
                 ['name' => 'Automóvil']
@@ -115,7 +115,7 @@ class SubscriptionFactory extends Factory
             $duration = $subscriptionType->duration_days;
 
             // Fecha de inicio en el pasado (hace más de la duración + 1 mes)
-            $startDate = fake()->dateTimeBetween('-' . ($duration + 60) . ' days', '-' . ($duration + 30) . ' days');
+            $startDate = fake()->dateTimeBetween('-'.($duration + 60).' days', '-'.($duration + 30).' days');
 
             // Fecha de fin también en el pasado (start_date + duración)
             $endDate = (clone $startDate)->modify("+{$duration} days");

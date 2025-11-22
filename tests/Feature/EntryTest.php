@@ -36,6 +36,13 @@ class EntryTest extends TestCase
         $this->user = User::factory()->create();
         $this->branch = Branch::factory()->create();
 
+        // Asignar el usuario a la sede como primaria (requerido para el nuevo flujo)
+        \App\Models\UserBranch::create([
+            'user_id' => $this->user->id,
+            'branch_id' => $this->branch->id,
+            'is_primary' => true,
+        ]);
+
         $customer = Customer::factory()->create();
         $vehicleType = VehicleType::firstOrCreate(['code' => 'CAR'], ['name' => 'Automóvil']);
         $this->vehicle = Vehicle::factory()->create([
@@ -58,23 +65,45 @@ class EntryTest extends TestCase
     public function test_store_creates_entry_successfully()
     {
         $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/admin/entries', [
-            'branch_id' => $this->branch->id,
-            'vehicle_id' => $this->vehicle->id,
-            'entry_type_id' => $this->entryType->id,
+            'license_plate' => $this->vehicle->license_plate,
         ]);
 
-        $response->assertStatus(201)
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Entrada registrada exitosamente para vehículo registrado',
+                'data' => [
+                    'vehicle_registered' => true,
+                ],
+            ])
             ->assertJsonStructure([
                 'success',
                 'message',
                 'data' => [
-                    'id',
-                    'entry_datetime',
-                    'exit_datetime',
-                    'status',
-                    'entry_user_id',
-                    'branch_id',
-                    'vehicle_id',
+                    'entry' => [
+                        'id',
+                        'entry_datetime',
+                        'exit_datetime',
+                        'status',
+                        'entry_user_id',
+                        'branch_id',
+                        'vehicle_id',
+                    ],
+                    'vehicle_registered',
+                    'vehicle_info' => [
+                        'license_plate',
+                        'brand',
+                        'model',
+                        'color',
+                        'vehicle_type',
+                    ],
+                    'customer_info',
+                    'subscription_info',
+                    'capacity_info' => [
+                        'total_spaces',
+                        'occupied_spaces',
+                        'available_spaces',
+                    ],
                 ],
             ]);
 
@@ -102,9 +131,7 @@ class EntryTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/admin/entries', [
-            'branch_id' => $this->branch->id,
-            'vehicle_id' => $this->vehicle->id,
-            'entry_type_id' => $this->entryType->id,
+            'license_plate' => $this->vehicle->license_plate,
         ]);
 
         $response->assertStatus(422)
@@ -124,9 +151,7 @@ class EntryTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/admin/entries', [
-            'branch_id' => $this->branch->id,
-            'vehicle_id' => $this->vehicle->id,
-            'entry_type_id' => $this->entryType->id,
+            'license_plate' => $this->vehicle->license_plate,
         ]);
 
         $response->assertStatus(422)
@@ -137,25 +162,66 @@ class EntryTest extends TestCase
     }
 
     /** @test */
-    public function test_store_validates_active_subscription()
+    public function test_store_creates_entry_for_unregistered_vehicle()
     {
+        $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/admin/entries', [
+            'license_plate' => 'XYZ999', // Placa que no existe
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Entrada registrada exitosamente para vehículo no registrado',
+                'data' => [
+                    'vehicle_registered' => false,
+                    'vehicle_info' => [
+                        'license_plate' => 'XYZ999',
+                        'registered' => false,
+                    ],
+                    'customer_info' => null,
+                    'subscription_info' => null,
+                ],
+            ]);
+
+        // Verificar que se guardó la placa en la entrada
+        $this->assertDatabaseHas('entries', [
+            'license_plate' => 'XYZ999',
+            'vehicle_id' => null,
+            'status' => 'active',
+        ]);
+    }
+
+    /** @test */
+    public function test_store_detects_active_subscription_automatically()
+    {
+        // Crear suscripción activa para el cliente
         $subscription = Subscription::factory()->create([
             'customer_id' => $this->vehicle->customer_id,
-            'is_active' => false,
+            'is_active' => true,
+            'start_date' => now()->subDays(5),
+            'end_date' => now()->addDays(25),
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')->postJson('/api/admin/entries', [
-            'branch_id' => $this->branch->id,
-            'vehicle_id' => $this->vehicle->id,
-            'entry_type_id' => $this->entryType->id,
-            'subscription_id' => $subscription->id,
+            'license_plate' => $this->vehicle->license_plate,
         ]);
 
-        $response->assertStatus(422)
+        $response->assertStatus(200)
             ->assertJson([
-                'success' => false,
-                'message' => 'La suscripción no está activa',
+                'success' => true,
+                'data' => [
+                    'subscription_info' => [
+                        'id' => $subscription->id,
+                        'is_active' => true,
+                    ],
+                ],
             ]);
+
+        // Verificar que la entrada se asoció a la suscripción
+        $this->assertDatabaseHas('entries', [
+            'vehicle_id' => $this->vehicle->id,
+            'subscription_id' => $subscription->id,
+        ]);
     }
 
     /** @test */

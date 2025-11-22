@@ -25,6 +25,7 @@ class Entry extends Model
         'exit_user_id',
         'branch_id',
         'vehicle_id',
+        'license_plate',
         'entry_type_id',
         'subscription_id',
         'notes',
